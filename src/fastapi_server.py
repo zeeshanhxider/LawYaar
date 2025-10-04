@@ -9,16 +9,16 @@ import os
 from datetime import datetime, timedelta
 import logging
 
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Import our existing backend components
 from flow import create_offline_indexing_flow, create_online_research_flow
 from utils.progress import get_progress_tracker
 from config import get_system_config, get_vector_db_config, get_llm_config
 from utils.vector_db import create_vector_db
 from utils.call_llm import set_llm_config, reset_usage_tracking, get_usage_and_cost
-
-# Setup logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Legal AI Research API", version="1.0.0")
 
@@ -58,6 +58,17 @@ async def startup_event():
     websocket_connections.clear()
     active_sessions.clear()
     logger.info("Server started - cleared stale sessions and websocket connections")
+
+# Try to include external whatsappbot router (if available)
+try:
+    from external.whatsappbot_shim import router as whatsapp_router
+    if whatsapp_router:
+        app.include_router(whatsapp_router)
+        logger.info("Included external whatsappbot whatsapp router")
+    else:
+        logger.info("External whatsappbot router not available")
+except Exception as e:
+    logger.warning(f"Could not include external whatsapp router: {e}")
 
 # Pydantic Models
 class SystemStatus(BaseModel):

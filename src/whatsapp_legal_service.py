@@ -1,0 +1,250 @@
+"""
+LawYaar WhatsApp Integration Service
+Bridges WhatsApp messages to the LawYaar legal research RAG system
+"""
+import logging
+import os
+import sys
+import asyncio
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from flow import create_online_research_flow
+from utils.vector_db import create_vector_db
+from config import get_vector_db_config
+import shelve
+
+logger = logging.getLogger(__name__)
+
+class LawYaarWhatsAppService:
+    """Service to handle WhatsApp messages using LawYaar's legal RAG system"""
+    
+    def __init__(self):
+        """Initialize the service with LawYaar's vector database"""
+        try:
+            # Initialize vector database (from your LawYaar system)
+            logger.info("Initializing LawYaar vector database for WhatsApp...")
+            vdb_config = get_vector_db_config()
+            self.vector_db = create_vector_db()
+            self.vector_db.create_or_get_collection(vdb_config.COLLECTION_NAME)
+            logger.info("LawYaar vector database initialized successfully")
+            
+            # Store conversation history per WhatsApp user
+            self.conversation_db = "lawyaar_whatsapp_chats_db"
+            
+        except Exception as e:
+            logger.error(f"Error initializing LawYaar WhatsApp service: {e}")
+            self.vector_db = None
+    
+    def check_if_chat_exists(self, wa_id):
+        """Check if a chat session exists for this WhatsApp ID"""
+        with shelve.open(self.conversation_db) as chats_shelf:
+            return chats_shelf.get(wa_id, None)
+    
+    def store_chat(self, wa_id, chat_history):
+        """Store chat history for a WhatsApp ID"""
+        with shelve.open(self.conversation_db, writeback=True) as chats_shelf:
+            chats_shelf[wa_id] = chat_history
+    
+    async def generate_legal_response(self, message_body: str, wa_id: str, name: str) -> str:
+        """
+        Generate a legal research response using LawYaar's RAG system.
+        
+        Args:
+            message_body: The user's question/query
+            wa_id: WhatsApp user ID for conversation tracking
+            name: User's name
+            
+        Returns:
+            str: AI-generated legal response
+        """
+        try:
+            logger.info(f"Processing legal query from {name} ({wa_id}): {message_body[:100]}")
+            
+            # Check if vector DB is available
+            if not self.vector_db:
+                return ("I apologize, but the legal research database is currently unavailable. "
+                       "Please try again later or contact support.")
+            
+            # Retrieve chat history (for context)
+            chat_history = self.check_if_chat_exists(wa_id)
+            
+            # Build context from previous conversation if available
+            conversation_context = ""
+            if chat_history:
+                # Get last 3 exchanges for context
+                recent_history = chat_history[-6:] if len(chat_history) > 6 else chat_history
+                conversation_context = "\n".join([
+                    f"{'User' if i % 2 == 0 else 'Assistant'}: {msg.get('parts', [''])[0][:200]}"
+                    for i, msg in enumerate(recent_history)
+                ])
+                logger.info(f"Using conversation context for {name}")
+            
+            # Detect language and create instruction for same-language response
+            detected_language, language_instruction = self._detect_language_and_create_instruction(message_body)
+            
+            # Create shared state for LawYaar research flow
+            shared = {
+                "user_query": message_body,
+                "language_instruction": language_instruction,  # Add language instruction
+                "vector_db": self.vector_db,
+                "retrieved_chunks": [],
+                "retrieval_count": 0,
+                "unique_documents": [],
+                "unique_document_count": 0,
+                "pruning_results": {},
+                "relevant_documents": [],
+                "document_summaries": {},
+                "final_response": ""
+            }
+            
+            # Run the LawYaar online research flow
+            logger.info("Running LawYaar legal research flow...")
+            online_flow = create_online_research_flow()
+            await online_flow.run_async(shared)
+            
+            # Extract the response
+            final_response = shared.get("final_response", "")
+            
+            if not final_response:
+                logger.warning("LawYaar flow returned empty response")
+                empty_response = ("I apologize, but I couldn't generate a response to your legal query. "
+                                "Please try rephrasing your question or contact a legal professional.")
+                # Translate error message if input was in Urdu
+                if detected_language == 'ur':
+                    empty_response = await self._translate_to_urdu(empty_response)
+                return empty_response
+            
+            # If input was in Urdu but response is in English, translate it
+            if detected_language == 'ur':
+                logger.info("Detected Urdu input - translating response to Urdu...")
+                final_response = await self._translate_to_urdu(final_response)
+            
+            # Format response for WhatsApp (keep it concise)
+            whatsapp_response = self._format_for_whatsapp(final_response, shared)
+            
+            # Update conversation history
+            new_history = chat_history if chat_history else []
+            new_history.append({"role": "user", "parts": [message_body]})
+            new_history.append({"role": "model", "parts": [whatsapp_response]})
+            self.store_chat(wa_id, new_history)
+            
+            logger.info(f"Generated legal response for {name} (length: {len(whatsapp_response)} chars)")
+            return whatsapp_response
+            
+        except Exception as e:
+            logger.error(f"Error generating legal response: {e}", exc_info=True)
+            return ("I apologize, but I encountered an error while researching your legal question. "
+                   "Please try again or contact a legal professional for assistance.")
+    
+    def _detect_language_and_create_instruction(self, text: str) -> tuple[str, str]:
+        """
+        Detect the language of input text and create instruction to respond in same language.
+        
+        Args:
+            text: Input text to detect language
+            
+        Returns:
+            tuple: (language_code, instruction) where language_code is 'ur' for Urdu or 'en' for English
+        """
+        # Simple heuristic: check for Urdu/Arabic script characters
+        urdu_arabic_chars = sum(1 for char in text if '\u0600' <= char <= '\u06FF' or '\u0750' <= char <= '\u077F')
+        
+        if urdu_arabic_chars > len(text) * 0.2:  # If more than 20% Urdu/Arabic characters
+            return ('ur', 
+                   "IMPORTANT: The user's query is in Urdu/Arabic. "
+                   "You MUST respond in Urdu/Arabic script. "
+                   "Provide your entire legal analysis and response in Urdu language. "
+                   "اردو میں جواب دیں۔")
+        else:
+            # Default to English
+            return ('en', "Respond in clear, professional English.")
+    
+    async def _translate_to_urdu(self, english_text: str) -> str:
+        """
+        Translate English legal response to Urdu using Gemini API.
+        
+        Args:
+            english_text: Legal response in English
+            
+        Returns:
+            str: Translated text in Urdu
+        """
+        try:
+            import google.generativeai as genai
+            import os
+            
+            gemini_api_key = os.getenv('GEMINI_API_KEY')
+            if not gemini_api_key:
+                logger.error("GEMINI_API_KEY not found - cannot translate to Urdu")
+                return english_text  # Return original if can't translate
+            
+            genai.configure(api_key=gemini_api_key)
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            
+            translation_prompt = f"""Translate the following legal analysis from English to Urdu. 
+Maintain all legal terminology accuracy and preserve the structure (headings, bullet points, etc.).
+Keep case citations in English but translate the rest.
+Be professional and formal in Urdu.
+
+ENGLISH TEXT:
+{english_text}
+
+URDU TRANSLATION:"""
+            
+            logger.info("Translating legal response to Urdu...")
+            response = model.generate_content(translation_prompt)
+            urdu_text = response.text.strip()
+            
+            logger.info(f"✅ Translation successful ({len(urdu_text)} characters)")
+            return urdu_text
+            
+        except Exception as e:
+            logger.error(f"❌ Translation error: {e}")
+            return english_text  # Fallback to English if translation fails
+    
+    def _format_for_whatsapp(self, response: str, shared: dict) -> str:
+        """
+        Format the legal response for WhatsApp.
+        Keep it concise and readable on mobile.
+        
+        Args:
+            response: The full legal response
+            shared: Shared state from the research flow
+            
+        Returns:
+            str: Formatted response for WhatsApp
+        """
+        # Get document count for citation
+        doc_count = len(shared.get("relevant_documents", []))
+        
+        # Truncate very long responses for WhatsApp
+        max_length = 4000  # WhatsApp has a ~4096 character limit
+        
+        if len(response) > max_length:
+            truncated = response[:max_length - 200]
+            # Try to end at a sentence
+            last_period = truncated.rfind('.')
+            if last_period > max_length - 500:
+                truncated = truncated[:last_period + 1]
+            
+            response = (f"{truncated}\n\n"
+                       f"_[Response truncated for WhatsApp. {doc_count} legal cases analyzed.]_")
+        else:
+            # Add citation info at the end
+            if doc_count > 0:
+                response += f"\n\n_Based on analysis of {doc_count} relevant legal cases._"
+        
+        return response
+
+
+# Singleton instance
+_lawyaar_service = None
+
+def get_lawyaar_whatsapp_service():
+    """Get or create the LawYaar WhatsApp service singleton"""
+    global _lawyaar_service
+    if _lawyaar_service is None:
+        _lawyaar_service = LawYaarWhatsAppService()
+    return _lawyaar_service
