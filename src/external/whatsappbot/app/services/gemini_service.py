@@ -187,6 +187,13 @@ def generate_response(message, wa_id, name):
             logger.warning("Empty legal research response")
             return "I apologize, but I couldn't generate a response to your legal query. Please try rephrasing."
         
+        # Check if no relevant cases were found
+        no_cases_found = (
+            doc_count == 0 or
+            "could not find any relevant legal cases" in full_legal_response.lower() or
+            "apologize" in full_legal_response.lower() and "could not find" in full_legal_response.lower()
+        )
+        
         # Create friendly summary using Gemini
         summary_prompt = f"""You are a friendly legal assistant on WhatsApp. You just completed a detailed legal research.
         
@@ -213,25 +220,29 @@ Write a friendly summary in {'Urdu' if detected_language == 'ur' else 'English'}
             # Fallback to first paragraph of legal response
             friendly_summary = full_legal_response.split('\n\n')[0] if full_legal_response else "Here's what I found..."
         
-        # Build hybrid response
-        hybrid_response = f"{friendly_summary}\n\n"
-        hybrid_response += f"━━━━━━━━━━━━━━━━━━━━\n"
-        hybrid_response += f"� *Detailed Legal Analysis*\n"
-        hybrid_response += f"━━━━━━━━━━━━━━━━━━━━\n\n"
+        # Build hybrid response starting with friendly summary
+        hybrid_response = f"{friendly_summary}"
         
-        # Add truncated legal research (limit for WhatsApp)
-        max_legal_length = 2000
-        if len(full_legal_response) > max_legal_length:
-            truncated_legal = full_legal_response[:max_legal_length]
-            last_period = truncated_legal.rfind('.')
-            if last_period > max_legal_length - 200:
-                truncated_legal = truncated_legal[:last_period + 1]
-            hybrid_response += f"{truncated_legal}\n\n_[Full analysis truncated]_"
-        else:
-            hybrid_response += full_legal_response
+        # Only add detailed analysis section if cases were found
+        if not no_cases_found:
+            hybrid_response += "\n\n"
+            hybrid_response += f"━━━━━━━━━━━━━━━━━━━━\n"
+            hybrid_response += f"⚖️ *Detailed Legal Analysis*\n"
+            hybrid_response += f"━━━━━━━━━━━━━━━━━━━━\n\n"
+            
+            # Add truncated legal research (limit for WhatsApp)
+            max_legal_length = 2000
+            if len(full_legal_response) > max_legal_length:
+                truncated_legal = full_legal_response[:max_legal_length]
+                last_period = truncated_legal.rfind('.')
+                if last_period > max_legal_length - 200:
+                    truncated_legal = truncated_legal[:last_period + 1]
+                hybrid_response += f"{truncated_legal}\n\n_[Full analysis truncated]_"
+            else:
+                hybrid_response += full_legal_response
         
-        # Add PDF links
-        if pdf_links and len(pdf_links) > 0:
+        # Add PDF links (only if cases were found)
+        if pdf_links and len(pdf_links) > 0 and not no_cases_found:
             hybrid_response += "\n\n━━━━━━━━━━━━━━━━━━━━\n"
             hybrid_response += "📄 *Full Case Documents*\n"
             hybrid_response += "━━━━━━━━━━━━━━━━━━━━\n"
@@ -244,8 +255,9 @@ Write a friendly summary in {'Urdu' if detected_language == 'ur' else 'English'}
             if len(pdf_links) > 5:
                 hybrid_response += f"_Plus {len(pdf_links) - 5} more documents_\n"
         
-        # Add footer
-        hybrid_response += f"\n_Analyzed {doc_count} legal cases_"
+        # Add footer (only if cases were found)
+        if not no_cases_found and doc_count > 0:
+            hybrid_response += f"\n_Analyzed {doc_count} legal cases_"
         
         logger.info(f"✅ Hybrid response complete: {len(hybrid_response)} characters")
         return hybrid_response

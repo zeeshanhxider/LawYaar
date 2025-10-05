@@ -53,16 +53,32 @@ def log_http_response(response):
     logging.info(f"Body: {response.text}")
 
 
-def get_text_message_input(recipient, text):
-    return json.dumps(
-        {
-            "messaging_product": "whatsapp",
-            "recipient_type": "individual",
-            "to": recipient,
-            "type": "text",
-            "text": {"preview_url": False, "body": text},
+def get_text_message_input(recipient, text, context_message_id=None):
+    """Create a text message payload for WhatsApp API.
+    
+    Args:
+        recipient (str): The WhatsApp ID of the recipient
+        text (str): The message text to send
+        context_message_id (str, optional): Message ID to reply to (creates threaded reply)
+        
+    Returns:
+        str: JSON string with message payload
+    """
+    payload = {
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": recipient,
+        "type": "text",
+        "text": {"preview_url": False, "body": text},
+    }
+    
+    # Add context for reply threading if message_id provided
+    if context_message_id:
+        payload["context"] = {
+            "message_id": context_message_id
         }
-    )
+    
+    return json.dumps(payload)
 
 
 def send_message(data):
@@ -100,6 +116,95 @@ def send_message(data):
     else:
         log_http_response(response)
         return response
+
+
+def mark_message_as_read(message_id):
+    """Mark a WhatsApp message as read.
+    
+    Args:
+        message_id (str): The ID of the WhatsApp message to mark as read
+        
+    Returns:
+        response object or None: The API response if successful, None otherwise
+    """
+    headers = {
+        "Content-type": "application/json",
+        "Authorization": f"Bearer {os.getenv('ACCESS_TOKEN')}",
+    }
+
+    version = os.getenv("VERSION")
+    phone_id = os.getenv("PHONE_NUMBER_ID")
+    url = f"https://graph.facebook.com/{version}/{phone_id}/messages"
+    
+    payload = json.dumps({
+        "messaging_product": "whatsapp",
+        "status": "read",
+        "message_id": message_id
+    })
+
+    try:
+        print(f"📖 Marking message as read: {message_id}")
+        response = requests.post(url, data=payload, headers=headers, timeout=10)
+        print(f"📖 Mark read status: {response.status_code}")
+        response.raise_for_status()
+        logging.info(f"✅ Message {message_id} marked as read")
+        return response
+    except requests.Timeout:
+        logging.error(f"Timeout occurred while marking message {message_id} as read")
+        return None
+    except requests.RequestException as e:
+        logging.error(f"Failed to mark message {message_id} as read: {e}")
+        print(f"❌ Mark read API Error: {e}")
+        if hasattr(e, 'response') and getattr(e.response, 'text', None):
+            logging.error(f"❌ Error response: {e.response.text}")
+        return None
+
+
+def send_typing_indicator(recipient, action="typing"):
+    """Send typing indicator or mark typing as stopped.
+    
+    Args:
+        recipient (str): The WhatsApp ID of the recipient (with or without + prefix)
+        action (str): Either "typing" to show typing indicator or "mark_as_read" to stop
+        
+    Returns:
+        response object or None: The API response if successful, None otherwise
+    """
+    headers = {
+        "Content-type": "application/json",
+        "Authorization": f"Bearer {os.getenv('ACCESS_TOKEN')}",
+    }
+
+    version = os.getenv("VERSION")
+    phone_id = os.getenv("PHONE_NUMBER_ID")
+    url = f"https://graph.facebook.com/{version}/{phone_id}/messages"
+    
+    # Remove '+' prefix if present for WhatsApp API
+    recipient_clean = recipient.replace('+', '')
+    
+    payload = json.dumps({
+        "messaging_product": "whatsapp",
+        "recipient_type": "individual",
+        "to": recipient_clean,
+        action: True
+    })
+
+    try:
+        print(f"⌨️ Sending '{action}' indicator to {recipient}")
+        response = requests.post(url, data=payload, headers=headers, timeout=10)
+        print(f"⌨️ Typing indicator status: {response.status_code}")
+        response.raise_for_status()
+        logging.info(f"✅ Typing indicator '{action}' sent to {recipient}")
+        return response
+    except requests.Timeout:
+        logging.error(f"Timeout occurred while sending typing indicator to {recipient}")
+        return None
+    except requests.RequestException as e:
+        logging.error(f"Failed to send typing indicator to {recipient}: {e}")
+        print(f"❌ Typing indicator API Error: {e}")
+        if hasattr(e, 'response') and getattr(e.response, 'text', None):
+            logging.error(f"❌ Error response: {e.response.text}")
+        return None
 
 
 def process_text_for_whatsapp(text):
@@ -145,11 +250,17 @@ def process_whatsapp_message(body):
     tracker.mark_processed(message_id)
     print(f"✅ Message {message_id} marked as processed")
     
+    # Mark the message as read on WhatsApp
+    mark_message_as_read(message_id)
+    
     # Get message type
     message_type = message.get("type")
     # Send response back to the sender's WhatsApp number
     # wa_id comes without '+' prefix, so we need to add it
     recipient = f"+{wa_id}" if not wa_id.startswith('+') else wa_id
+    
+    # Show typing indicator
+    send_typing_indicator(recipient, "typing")
     
     print(f"🔍 DEBUG: Message type = '{message_type}'")
     print(f"🔍 DEBUG: Recipient (sender) = '{recipient}'")
@@ -213,7 +324,7 @@ def process_whatsapp_message(body):
             
             # 5. Send voice reply to recipient (upload file to WhatsApp)
             print(f"📤 Step 5: Uploading and sending voice reply to {recipient}...")
-            result = send_audio_reply(recipient, audio_path_tts)
+            result = send_audio_reply(recipient, audio_path_tts, context_message_id=message_id)
             print(f"📤 Send result: {result}")
             
             if result:
@@ -249,8 +360,8 @@ def process_whatsapp_message(body):
         logging.info(f"📤 Sending text reply to {recipient}: {response}")
         print(f"📤 Sending text reply to {recipient}...")
         
-        # Send text message to the sender
-        data = get_text_message_input(recipient, response)
+        # Send text message to the sender as a reply (with context)
+        data = get_text_message_input(recipient, response, context_message_id=message_id)
         result = send_message(data)
         print(f"📤 Send result: {result}")
     
