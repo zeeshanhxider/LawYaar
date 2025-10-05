@@ -82,6 +82,184 @@ def store_chat(wa_id, chat_history):
         logger.error(f"Error storing chat: {e}")
 
 
+def _is_legal_query(message: str) -> str:
+    """
+    Classify a message into: LEGAL, CHITCHAT, or IRRELEVANT.
+    
+    Uses Gemini to quickly classify the message intent.
+    
+    Args:
+        message: The user's message
+        
+    Returns:
+        str: "LEGAL", "CHITCHAT", or "IRRELEVANT"
+    """
+    message_lower = message.lower().strip()
+    
+    # Quick keyword check for obvious greetings/chitchat
+    chitchat_keywords = [
+        'hi', 'hello', 'hey', 'assalam', 'salam', 'greetings',
+        'thanks', 'thank you', 'ok', 'okay', 'bye', 'goodbye',
+        'how are you', 'what is your name', 'who are you',
+        'good morning', 'good afternoon', 'good evening'
+    ]
+    
+    # If message is very short and matches chitchat, skip LLM call
+    if len(message_lower) < 20 and any(keyword in message_lower for keyword in chitchat_keywords):
+        logger.info(f"Quick chitchat detection: {message[:30]}")
+        return "CHITCHAT"
+    
+    # For ambiguous cases, use Gemini to classify
+    try:
+        classification_prompt = f"""You are a message classifier for a Pakistani legal assistant chatbot.
+
+USER MESSAGE: {message}
+
+TASK: Classify this message into ONE category:
+
+A) LEGAL - Questions about Pakistani law, Supreme Court cases, legal rights, procedures, bail, sentencing, contracts, property law, family law, criminal law, constitutional law, etc.
+
+B) CHITCHAT - Greetings, thanks, small talk (hi, hello, how are you, etc.)
+
+C) IRRELEVANT - Topics completely unrelated to law (weather, sports, recipes, jokes, math problems, movie recommendations, etc.)
+
+IMPORTANT: Be strict about what counts as LEGAL. Only classify as LEGAL if it's genuinely related to law or legal matters.
+
+Respond with ONLY one word: "LEGAL", "CHITCHAT", or "IRRELEVANT"
+
+RESPONSE:"""
+        
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(classification_prompt)
+        result = response.text.strip().upper()
+        
+        # Extract classification
+        if "LEGAL" in result:
+            classification = "LEGAL"
+        elif "CHITCHAT" in result:
+            classification = "CHITCHAT"
+        elif "IRRELEVANT" in result:
+            classification = "IRRELEVANT"
+        else:
+            # Default to LEGAL to be safe
+            classification = "LEGAL"
+        
+        logger.info(f"Message classification: {classification} - {message[:50]}")
+        return classification
+        
+    except Exception as e:
+        logger.error(f"Error classifying message: {e}")
+        # Default to LEGAL to be safe (better to over-search than miss queries)
+        return "LEGAL"
+
+
+def _handle_chitchat(message: str, wa_id: str, name: str) -> str:
+    """
+    Generate a friendly conversational response for non-legal messages.
+    
+    Args:
+        message: The user's message
+        wa_id: WhatsApp ID
+        name: User's name
+        
+    Returns:
+        str: Friendly conversational response
+    """
+    try:
+        # Get chat history for context
+        chat_history = check_if_chat_exists(wa_id)
+        
+        chitchat_prompt = f"""You are a friendly Pakistani legal assistant chatbot on WhatsApp named "LawYaar".
+
+USER: {name}
+MESSAGE: {message}
+
+Generate a warm, brief, conversational response (2-3 sentences max). 
+
+Guidelines:
+- Be friendly and professional
+- If it's a greeting, greet back and offer help with legal questions
+- If it's thanks, acknowledge and offer further assistance
+- Keep it SHORT (this is WhatsApp)
+- Use emojis sparingly 😊
+
+RESPONSE:"""
+        
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(chitchat_prompt)
+        chitchat_response = response.text.strip()
+        
+        # Store in chat history
+        new_history = chat_history if chat_history else []
+        new_history.append({"role": "user", "parts": [message]})
+        new_history.append({"role": "model", "parts": [chitchat_response]})
+        store_chat(wa_id, new_history)
+        
+        logger.info(f"✅ Chitchat response generated for {name}")
+        return chitchat_response
+        
+    except Exception as e:
+        logger.error(f"Error generating chitchat response: {e}")
+        # Fallback responses
+        detected_lang = _detect_language(message)
+        if detected_lang == 'ur':
+            return "السلام علیکم! میں LawYaar ہوں، آپ کا قانونی معاون 😊 میں آپ کی کیسے مدد کر سکتا ہوں؟"
+        return "Hello! I'm LawYaar, your legal assistant 😊 How can I help you with legal questions today?"
+
+
+def _handle_irrelevant(message: str, wa_id: str, name: str) -> str:
+    """
+    Politely decline irrelevant (non-legal) queries.
+    
+    Args:
+        message: The user's message
+        wa_id: WhatsApp ID
+        name: User's name
+        
+    Returns:
+        str: Polite rejection message
+    """
+    # Detect language for appropriate response
+    detected_lang = _detect_language(message)
+    
+    # Store in chat history
+    try:
+        chat_history = check_if_chat_exists(wa_id)
+        new_history = chat_history if chat_history else []
+    except:
+        new_history = []
+    
+    if detected_lang == 'ur':
+        response = (
+            "معذرت! 😊 میں LawYaar ہوں - پاکستان کے قانونی معاملات میں مہارت رکھنے والا \n"
+            "میں صرف قانونی سوالات کا جواب دے سکتا ہوں جیسے:\n"
+            "• ضمانت اور سزا\n"
+            "• سپریم کورٹ کے فیصلے\n"
+            "• قانونی حقوق اور طریقہ کار\n\n"
+            "براہ کرم کوئی قانونی سوال پوچھیں! ⚖️"
+        )
+    else:
+        response = (
+            "I apologize! 😊 I'm LawYaar - a legal assistant specializing in Pakistani law.\n\n"
+            "I can only help with legal questions such as:\n"
+            "• Bail and sentencing matters\n"
+            "• Supreme Court case law\n"
+            "• Legal rights and procedures\n\n"
+            "Please ask me a legal question! ⚖️"
+        )
+    
+    # Store in chat history
+    try:
+        new_history.append({"role": "user", "parts": [message]})
+        new_history.append({"role": "model", "parts": [response]})
+        store_chat(wa_id, new_history)
+    except Exception as e:
+        logger.error(f"Error storing irrelevant query history: {e}")
+    
+    logger.info(f"🚫 Irrelevant query rejected for {name}: {message[:50]}")
+    return response
+
+
 def get_legal_context(message, wa_id, name):
     """
     Get relevant legal context from LawYaar RAG system.
@@ -134,10 +312,11 @@ def generate_response(message, wa_id, name):
     in a conversational, easy-to-understand format for WhatsApp users.
     
     Architecture:
-    1. Run full legal research pipeline (Classification → Retrieval → Pruning → Reading → Aggregation)
-    2. Create friendly summary using Gemini
-    3. Append full legal research details
-    4. Add PDF links at the end
+    1. Check if message is a legal query (filter greetings/chitchat)
+    2. Run full legal research pipeline (Classification → Retrieval → Pruning → Reading → Aggregation)
+    3. Create friendly summary using Gemini
+    4. Append full legal research details
+    5. Add PDF links at the end
     
     Args:
         message (str): The user's legal query
@@ -154,6 +333,19 @@ def generate_response(message, wa_id, name):
             logger.error("❌ LawYaar legal research system not available")
             return ("I apologize, but the legal research system is currently unavailable. "
                    "Please try again later.")
+        
+        # ✨ PRE-FILTER: Classify message type (LEGAL, CHITCHAT, or IRRELEVANT)
+        message_type = _is_legal_query(message)
+        
+        if message_type == "CHITCHAT":
+            logger.info(f"💬 Chitchat detected: {message[:50]}... Responding conversationally")
+            return _handle_chitchat(message, wa_id, name)
+        elif message_type == "IRRELEVANT":
+            logger.info(f"🚫 Irrelevant query detected: {message[:50]}... Politely declining")
+            return _handle_irrelevant(message, wa_id, name)
+        
+        # message_type == "LEGAL" - proceed with legal research
+        logger.info(f"⚖️ Legal query detected: {message[:50]}... Running research pipeline")
         
         # Run full legal research pipeline with metadata
         service = get_lawyaar_service()
@@ -216,9 +408,15 @@ Write a friendly summary in {'Urdu' if detected_language == 'ur' else 'English'}
             summary_response = model.generate_content(summary_prompt)
             friendly_summary = summary_response.text.strip()
         except Exception as e:
-            logger.error(f"Error generating summary: {e}")
-            # Fallback to first paragraph of legal response
-            friendly_summary = full_legal_response.split('\n\n')[0] if full_legal_response else "Here's what I found..."
+            logger.error(f"⚠️ Gemini API error generating summary: {e}")
+            # Fallback: Use first two paragraphs of legal response
+            paragraphs = full_legal_response.split('\n\n')
+            if len(paragraphs) >= 2:
+                friendly_summary = '\n\n'.join(paragraphs[:2])
+            elif paragraphs:
+                friendly_summary = paragraphs[0]
+            else:
+                friendly_summary = "Here's what I found from the legal research:"
         
         # Build hybrid response starting with friendly summary
         hybrid_response = f"{friendly_summary}"
@@ -263,11 +461,28 @@ Write a friendly summary in {'Urdu' if detected_language == 'ur' else 'English'}
         return hybrid_response
         
     except Exception as e:
-        logger.error(f"❌ Error generating hybrid response: {e}", exc_info=True)
-        detected_lang = _detect_language(message) if message else 'en'
+        logger.error(f"❌ Critical error in generate_response: {e}", exc_info=True)
+        # Never expose internal errors to user
+        try:
+            detected_lang = _detect_language(message) if message else 'en'
+        except:
+            detected_lang = 'en'
+        
         if detected_lang == 'ur':
-            return "معذرت، مجھے ایک مسئلہ کا سامنا کرنا پڑا 😔 براہ کرم دوبارہ کوشش کریں۔"
-        return "I apologize, but I encountered an error 😔 Please try again."
+            return (
+                "معذرت! 😔 مجھے آپ کے سوال کا جواب دینے میں دشواری ہو رہی ہے۔\n\n"
+                "براہ کرم:\n"
+                "• اپنا سوال دوبارہ لکھیں\n"
+                "• یا کچھ دیر بعد کوشش کریں\n\n"
+                "شکریہ! 🙏"
+            )
+        return (
+            "I apologize! 😔 I'm having trouble processing your question.\n\n"
+            "Please try:\n"
+            "• Rephrasing your question\n"
+            "• Asking again in a few moments\n\n"
+            "Thank you for your patience! 🙏"
+        )
 
 
 def _detect_language(text: str) -> str:
