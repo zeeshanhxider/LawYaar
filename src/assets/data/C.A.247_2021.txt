@@ -1,0 +1,49 @@
+Case No: C.A.247/2021
+Case Title: The Commissioner Inland Revenue, Lahore v. M/s. Atta Cables (Pvt.) Ltd., Lahore, etc
+Subject: Tax/Income Tax
+Judge: Mr. Justice Munib Akhtar
+Judgment Date: 02-11-2023
+Upload Date: 07-11-2023
+Citations: 2024 SCMR 468
+SC Citations: 2023 SCP 338
+PDF URL: https://www.supremecourt.gov.pk/downloads_judgements/c.a._247_2021.pdf
+
+[1] judgment dated 22.4.2019 passed by the Lahore High Cour t, Lahor e in ICA No. . ) The Commissioner Inland Revenue, Lahore … Appellant vs M/s. Atta Cables (Pvt.) Ltd., Lahore, etc. … Respondent s For the Appellant : Mr. Ibrar Ahmed, ASC (via video -link, Lahore) For respondent No.1 : Mr. J aved Iqbal Qazi, ASC (via video -link, Lahore ) Date of Hearing : 02.11.2023 JUDGMENT Munib Akhtar, J.: This appeal arises out of the Income Tax Ordinance, 2001 (“Ordinance”) and relates to the tax year 2015.
+
+[2] According to the department (i. e., the Commissioner concerned) the respondent taxpayer came within the ambit of s. 214D of the Ordinance, which had been newly added by the Finance Act, 2015 and which provided for automatic audit under s. 177 of those taxpayers that fulfilled the conditi ons thereof. (Section 214D has since been omitted by the Finance Act, 2018.) The exact basis on which the department so contended was that the taxpayer had not filed its return for tax year 2015 within the date required.
+
+[3] It is common ground that, firstly, the date for filing the return was 21.01.2016; secondly , on that date the respondent properly filed an application under s. 119 for extension of time; and thirdly, that the Commissioner did not C.A. -:2:- respond to said request. On such basis, the department claimed that s. 214D applied. 2.
+
+[4] Being aggrieved by the notices served on it in this regard, the taxpayer challenged the same by filing a writ petition in the Lahore High Court. A learned single Judge, relying on an earlier (single Bench ) decision of that Court reported as Muhammad Mujahid Qureshi and others v Federation of Pakistan and others 2019 PTD 535 dismissed the petition.
+
+[5] The respondent filed an intra-Court appeal, which was allowed by a learned Division Bench, which relied on a decision of the Sindh High Court reported as Commissioner of Inland Revenue v Independent Newspaper Corp (Pvt) Ltd. 2019 PTD 447. The department petitioned this Court for leave to appeal, which was granted vided order dated 22.03.2021. 3.
+
+[6] Before us, the mainstay of the case put fo rward by learned counsel for the appellant was that the decision in Independent Newspaper Corp was erroneous and that the point had been correctly decided by the learned single Judge. Learned counsel for the taxpayer supported the impugned judgment. After hearing learned counsel, it was announced in Court that the appeal stood dismissed. 4.
+
+[7] Section 214D, as presently relevant , was as follows: “214D. Automatic selection for audit .—(1) A person shall be automatically selected for audit of its income tax affairs for a tax year, if — (a) the return is not filed within the date it is required to be filed as specified in section 118, or, as the case may be, not filed within the time extended by the Board under section 214A or further extended for a period not ex ceeding thirty days by the Commissioner under section 119; … (2) Audit of income tax affairs of persons automatically selected under sub -section (1) shall be conducted as per procedure given in section 177 and all the provisions of this Ordinance shall a pply accordingly: …” 5.
+
+[8] A bare perusal of s. 214D shows that it was a coercive — some might say draconian —measure to ensure, inter alia, that returns were filed within the stipulated period. A taxpayer in default automatically came within the ambit of s. 177 , the C.A. -:3:- principal provision in the Ordinance relating to audit.
+
+[9] The audit requirements of s. 177 are broadly stated and certainly impose a heavy, cumbersome and onerous burden on the taxpayer. In the ordinary course, and in terms of other provisions of the Ordinance which need not be considered in detail, selection for audit is not automatic but is a result that comes about after going through various statutory filters , including such as are set out in various circulars issued by the Federal Board of Revenue .
+
+[10] These provisions have generated much legal controversy and many disputes , and have been considered by the Courts on different occasions. Section 214D, inasmuch as it applied automatically (subject to certain exceptions contained in its subsections (3) and (4)) and therefore bypassed the filters otherwise built into the Ordinance before an audit could be undertaken, had therefore to be construed and applied strictly.
+
+[11] More particularly, the conditions that had to exist for the section to be attracted had to apply precisely. Any deviation or discrepancy, howsoever minor , slight or even inconsequential it may otherwise appear to be would apply, and go, in favor of the taxpayer. In the present case, the section would have applied if the Commissioner had, under s . 119, extended the period for filing the return (subject to a thirty day condition) and the return was not filed within such extended period .
+
+[12] Now, as noted, the fact of the matter was that the Commissioner never took any action on the application, which w as otherwise properly filed, for extension. It is to be noted that subsection (3) of s. 119 specifically requires the Commissioner to grant the extension in writing. Since s. 214D had to be applied exactly, this meant that for purposes of this provision the refusal of the Commissioner also ha d to be in writing.
+
+[13] In other words, any inaction on the part of the Commissioner, or a failure to reject or refuse the application for extension in any manner other than in writing , would mean that for the purposes of s . 214D the application would be regarded as pending. There could be no refusal or denial of extension by implication.
+
+[14] That would, in effect, introduce a deeming fiction into s. 214D, i.e., the section would be deemed to apply if, after a “reasonable” perio d had passed , the Commissioner had still not made an order on the application under s. 119. For a provision as harsh and severe as s. 214D to C.A. -:4:- apply merely by way of implication or on a deemed basis would be incorrect.
+
+[15] Even if the section were to be conside red as merely in aid of, and ancillary to, the recovery and procedural mechanisms of the Ordinance, the severity of its application was penal in nature. At least as presently relevant, the section was hugely disproportionate measure for the “evil” it was s eeking to remedy.
+
+[16] The portions thereof now under consideration required a strict construction. Clearly therefore, until the application for extension was actually disposed of by an order in writing the section would not become applicable. Furthermore, the condition of thirty days would have to apply, in the context of s. 214D, not from the due date for the filing of the return, but the date of the order made by the Commissioner granting an extension. (Of course, if the Commissioner refused the extension in writing, then the section would apply from the date of such order, subject to any remedies available to the taxpayer to challenge such refusal.) Therefore, it was our view that in the facts and circumstances presented in this case, s. 214D never became app licable.
+
+[17] The writ petition was thus rightly allowed by the learned Division Bench. 6. We may note, in order to avoid any confusion, that a failure to file a return within the due date and the fate of an application for extension filed under s. 119 and ho w it is dispose of (or not, as the case may be) , can have different consequences and implications depending on which provision of the Ordinance is under consideration.
+
+[18] We are concerned only with s. 214D and therefore whatever has been said here is to be so understood and applied. 7. Insofar as the reported judgment of the Lahore High Court in Muhammad Mujahid Qureshi is concerned , the learned single Judge correctly regarded herself as bound by the same, and followed it.
+
+[19] However, and quite obviously, the le arned Division Bench was not so bound and could, as in fact happened, take a different view. Muhammad Mujahid Qureshi cannot, in light of what has been stated above, be regarded as correctly decided and it is so declared. As regard s the decision of the Sin dh High Court in Independent Newspaper Corp , that did not, as such, C.A. -:5:- involve any question relating to s. 214D and it is therefore not necessary for us to consider the correctness there of. 8.
+
+[20] For the foregoing reasons, this appeal was dismissed at the concl usion of the hearing by an order announced in Court. Judge Judge Judge Islamabad, the 2nd November, 2023 Naveed /* Approved for reporting

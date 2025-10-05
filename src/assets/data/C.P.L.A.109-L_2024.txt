@@ -1,0 +1,89 @@
+Case No: C.P.L.A.109-L/2024
+Case Title: Commissioner Inland Revenue, Lahore v. M/S Educational Services (Private) Limited, Lahore
+Subject: Tax/Sales Tax Act
+Judge: Mr. Justice Munib Akhtar
+Judgment Date: 24-04-2025
+Upload Date: 06-05-2025
+Citations: N/A
+SC Citations: 2025 SCP 161
+PDF URL: https://www.supremecourt.gov.pk/downloads_judgements/c.p._109_l_2024.pdf
+
+[1] judgment dated 21.11.2023 passed by the Lahore High Court, Lahore in S.T.R. No.. ) Commissioner Inland Revenue, Lahore … Petitioner vs M/s Educational Services (Private) Limited, Lahore … Respondent For the Petitioner : Mr. Ahmed Pervaiz, ASC For the R espondent : Mr. Imtiaz Rashid Siddiqui, ASC Date of Hearing : 24.04.2025 ORDER Munib Akhtar, J.: At the conclusion of the hearing it was announced that this leave petition was being converted into an appeal and allowed.
+
+[2] The following are the reasons for our decision. 2. The matter arises under the Federal Excise Act, 2005 (“Act”). The relevant facts can be stated with brevity. The respondent taxpayer is a franchis er within the meaning of that term as set out in Rule 2(mb) of the Federal Excise Rules, 2005 (“Rules”) , which have been framed under the Act.
+
+[3] The term “franchise” is defined in s. 12(12a) of the Act. The taxpayer, a Pakistani company, entered into various franchise agreements with parties in Pakistan, and this constituted the providing of dutiable services (within the meaning of s. 2(8d) of the Act) in Pakistan, as “franchise services” are set out as excisable services in Table II of the First Schedule to the Act.
+
+[4] The period relevant for C.P.L.A.109 -L/2024 -:2:- present purposes is 2012. The point in dispute is the person by whom the excise duty was payable in relation to the franchise services . The Commissioner (herein after referred to as the “Department”) , who is the petitioner before the Court , contends that it was the respondent as franchiser whereas the respondent taxpayer takes the position that it was the franchisee (s).
+
+[5] Thus, the question is not whether excise duty was payable; it is only, by whom. The Department relies, in particular, on s. 3 of the Act whereas the respondent bases its case on Rule 43A of the Rules. The learned Appellate Tribunal took the view that the respondent was correct, and this conclusion was upheld by the learned High Court by means of the impugned judgment, on a tax reference filed by the Department.
+
+[6] It is against that decision that the Department has presented its leave petition before this Court. In our view, the following question of law requires determination: Whether, in the facts and circumstances of the case and on a proper reading and application of s. 3 of the Act and Rule 43A of the Rules, the liability to pay excise duty lay on the respondent? 3.
+
+[7] Learned counsel for the Department, after referring to the facts, submitted that subsection (5) of s. 3 clearly stated that in relation to the payment of duty in respect of excisable services the liability lay on the person providing or rendering such services, which here meant the respondent as it was admittedly the franchiser.
+
+[8] In particular, reliance was placed on clause (c) of the said subsection. According to learned counsel the reliance placed by the learned High Court (in affirming the decision of the learned Tribunal) on Rule 43A was misconceived inasmuch as t hat applied only in relation to franchise services provided by foreign franchisers, who were also specifically dealt with in the aforesaid clause (c).
+
+[9] It was prayed that the impugned judgment , being not sustainable in law , ought to be set aside. Learned counsel for the respondent submitted that Rule 43A had been duly framed by the Federal Board of Revenue (“FBR”) in exercise of rule making power conferred (as here relevant) by s. 40 and was unexceptionable.
+
+[10] It categorically provided for the registration of franchisee s with the C.P.L.A.109 -L/2024 -:3:- FBR and then set out the modalities for the payment of excise duty by the m. Thus, the obligation clearly lay on the respondent’s franchisees and not on it as franchiser. The view taken by the learned High Court was correct.
+
+[11] Learned counsel also submitted that the Department had filed a sales tax reference in the High Court instead of one under the Act and the same was therefore incompetent and ought to have been dismissed on that ground alone. It was prayed that the leave petition be dismissed. 4. After having heard learned counsel and considered the various provisions referred to and relied upon, we concluded that the impugned judgment could not be sustained.
+
+[12] The charging section of the Act is s. 3 and subsection (5) thereof, as presently relevant, is in the following terms: “(5) The liability to pay duty shall be — … (c) in case of services provided or rendered in Pakistan, of the person providing or rendering such service, provided where services are rendered by the person out of Pakistan, the recipient of such service in Pakistan shall be liable to pay duty; …. ” The subsection sets out the legal liability to pay the duty, i.e., specifies on whom lies the legal incidence of the tax.
+
+[13] Excise duty is of course a species of indirect taxation, and it is a characteristic of such taxes that the expectation is that the economic incidence or burden of the levy will normally be passed on to the consumer (or, as the case may be, especially where the tax is being levied in the VAT mode, on the person next in the supply/consumption chain).
+
+[14] However, there is in law a distinction between the legal incidence of an indirect tax and its economic or commercial incidence. The State is of course interested in the recovery of the levy, and for this purpose the relevant statute may set out the person who must bear the legal incidence. It is that person against whom the State will act (by way, e.g., of coercive recovery provisions) if the tax remains unpaid.
+
+[15] Whether such person can successfully pass on the economic burden onto someone else is, in terms and for purposes of its legal incidence, C.P.L.A.109 -L/2024 -:4:- usually not relevant. We may caution however, that this is the general position which, as will be seen , suffices for present purposes. There can be exceptions to this in the statutory scheme itself, either set out expressly or as may be found to exist by way of necessary implication or otherwise .
+
+[16] However, that aspect need not be considered further here. The general point is well illustrated by a decision of the Supreme Court of India. It was under the Central Excise Act, 1944 which continues to hold the field in that jurisdiction. An excise levy was imposed on the manufacture of footwear by companies that fell in a certain category.
+
+[17] In British India Corporation Ltd. v Collector of Central Excise AIR 1963 SC 104 the petitioner inter alia took the plea in the petition challenging the levy that it could not pass on the economic burden of the levy on to its consumers on account of its competitors, which were not subject to the levy.
+
+[18] This ground was refuted by the Supreme Court, which explained the correct position in law in the following terms (pg. 106): “The contention that this duty does not amount to a duty of excise because it cannot be passed on by the petitioner to the consumer was not raised before us. It was mentioned in the petition.
+
+[19] An Excise Duty is a duty on production and though according to the economists, it is an indirect tax capable of being passed on to the consumer as part of the price yet the mere passing on of the duty is not its essential Even if borne by the producer or manufacturer it does not cease to be a duty of excise.
+
+[20] The nature of such a duty was explained in the very first case of the Federal Court and subsequently in others of the Federal Court, the Privy Council and this Court, but this ground continues to be taken and we are surprised that it was raised again.” Putting the point in terms as set out above, there is a distinction, in law, between the legal incidence of the levy which falls where the statutory regime, on its proper interpretation and application, places it either expressly or by way of necessary implication on the one hand, and its economic burden or incidence on the other , which may fall (in whole or in part) on the one or the other of the parties to a transaction depending inter alia on the circumstances of business and trade.
+
+[21] C.P.L.A.109 -L/2024 -:5:- 5. Applying the foregoing principles to the facts and circumstances at hand it is, in our view, clear from a bare reading of subsection (5) that the legal incidence of the levy is to fall on the franchiser , here the respondent. Clause (c) can be regarded as comprising of two parts.
+
+[22] The general rule in relation to the legal incidence is set out in the first part. To this an exception is carved out in the second part (as indicated by the word “provided”) , in relation to the situation where the franchiser is outside Pakistan. Then, the legal incidence falls on the franchisee. Here the situation, on the undisputed facts, came within the first part, i.e., the legal incidence l ay on the franchiser.
+
+[23] This was where the parent statute itself place d it in clear and unambiguous terms, and that cannot be varied in the exercise of rule making power. 6. But what then of Rule 43A, which found favor with both the learned High Court and the learned Tribunal ? This provided, in material part, as follows: “43A.
+
+[24] Special procedure for payment of Federal Excise duty on franchise fee or technical fee or royalty under a franchise agreement .--(1) Every person, firm or company, hereinafter referred to as franchisee, availing any right under a franchise as defined under clause 12(a) of section 2 of the Act, if not already registered, shall obtain Federal Excise registration from the Collector of Federal Excise in whose jurisdiction the franchisee or as the case may be, his head office is located: … (2) The duty shall be paid by the franchisee, or as the case may be, the head office of the franchisee at the rate of ten per cent of the value of taxable service… … (5) The Collector of Federal Excise having jurisdiction shall obtain from the State Bank of Pakistan the statistics or data concerning payment of franchise fee or technical fee or royalty paid by a franchisee to the franchiser, on a quarterly basis and shall use such statistics or data to determine or verify the amount of duty paid by a franchisee during the said period. … (7) Where any remittance is made through any bank on account of a franchise fee, technical fee or royalty and the C.P.L.A.109 -L/2024 -:6:- bank is satisfied that the franchisee has not paid duty as required under this rule, the bank shall, -- (a) deduct the amount of the duty at the applicable rate from such remittance; (b) issue a certificate on its letter head showing the name and registration number of the franchisee and the amount of duty so deducted; and (c) deposit the said amount of duty against its own monthly return without any adjustment or deduction whatsoever:… ” Learned counsel for the Department, relying in particular on sub-rules (5) and (7), submitted that Rule 43A applied only to the latter part of clause (c) of s. 3(5).
+
+[25] This was indicated in particular by conferring jurisdiction on the Collector (now Commissioner) to obtain information from the State Bank (sub -rule (5)) and the forced deduction of the duty by a bank on remittances made, if the specified conditions applied (sub -rule (7)). Learned counsel submitted that these sub -rules made sense only in relation to the situation where the franchiser was outside Pakistan.
+
+[26] Learned counsel for the respondent on the other hand submitted that the rule was a valid exercise of delegated legislation and when read as a whole applied to all situations , and made clear that the liability to pay lay only on franchisees and not the franchiser. 7. In our view, the submission by learned counsel for the Department (subject to a clarificatory observation made later) is correct.
+
+[27] Rule 43A must (now , and as relevant for present purposes ) be regarded as geared towards ensuring that the exception or second part of clause (a) of s. 3(5) is given effect to, i.e., the situation where the franchiser is outside of Pakistan and the parent statute expressly imposes the legal incidence of the duty on the franchisee.
+
+[28] The references to the State Bank in sub - rule (5) and deduction from “remittance[s]” in sub -rule (7) (which term is generally used for foreign banking transactions) make clear that the concern being addressed is that the local franchisee of the foreign franchiser is fulfilling its legal obligation to pay the duty.
+
+[29] C.P.L.A.109 -L/2024 -:7:- 8. Finally (and again, subject to the clarificatory observation made below) , to read Rule 43A in the manner as found favor with the learned High Court would allow the FBR, in exercise of rule making power, to alter the legal incidence of the duty in a manner contrary to what is expressly stated in the parent statute.
+
+[30] This is impermissible. In the presence of a position embedded in the parent Act itself no such power of delegated legislation vests, or can vest, in the FBR or for that matter any other person except by way of express grant by the statute. The point being made is aptly illustrated by the Sales Tax Act, 1990 (“1990 Act”) .
+
+[31] The charging section there is s. 3 and subsection (3) thereof is in the following terms: “(3) The liability to pay the tax shall be, - (a) in the case of supply of goods , of the person making the supply, and (b) in the case of goods imported into Pakistan, of the person importing the goods. ” It will be seen that this provision is equivalent to s. 3(5) of the Act.
+
+[32] Like excise duty sales tax is an indirect tax and, in particular, in terms of the statute now in force is applied in the VAT mode. Subsection (3) fixes the legal incidence of the tax and clause (a) makes clear that it is to lie on the seller of the goods. Subsection (3A) may now be noted: “(3A) Notwithstanding anything contained in clause (a) of sub-section (3), the Board, with the approval of the Federal Minister -in-charge, may, by a notification in the official Gazette, specify the goods in respect of which the liability to pay tax shall be of the person receiving the supply. ” This provision expressly allows, subject to the fulfillment of applicable conditions , for the FBR, by delegated legislation, to shift the legal incidence of the tax in respect of specified goods on to the buyer.
+
+[33] But this is an express power, conferred by the parent statute itself. On a specific query from the Court, both learned counsel agreed that no such power exists in terms of the Act. Therefore, in relation to the statute now under consideration Rule C.P.L.A.109 -L/2024 -:8:- 43A cannot be read in the manner as accepted by the learned High Court, and urged by learned counsel for the respondent. 9.
+
+[34] One final (clarificatory) observation may be made with regard to Rule 43A. This was added to the Rules by SRO 561(I)/2006 dated 05.06.2006. Sub -section (5) was added to s. 3 by means of the Finance Act, 2007, with the proviso or exception contained in the second part of clause (c) being added by the Finance Act, 2008.
+
+[35] It will be seen that when Rule 43A was inserted there was no sub -section (5). The Act had not then expressly (putting to one side whatever the position could have been by way of necessary implication) set out the persons on whom lay the legal incidence of the duty. It was perhaps at that time possible to argue that the FBR, in exercise of delegated legislation , could determine the persons on whom the legal incidence fell and that Rule 43A, being but an application of such rule making power, applied to all cases of franchise services.
+
+[36] Whatever may have been the merits of such a claim the position rapidly, and fundamentally , altered within a year by the addition of sub -section (5) to s. 3. That established the position in the parent statute itself with regard to the legal incidence . Initially (i.e., as added in 2007), that applied to all franchises.
+
+[37] It is therefore at least arguable that up to the further insertion made in clause (a) in 2008, Rule 43A ceased to apply altogether (went into abeyance, as it were) and “revived” by addition of the proviso or exception to become applicable once more, though only in relation to the case of a franchiser outside Pakistan .
+
+[38] However, it is not necessary to continue travers ing the past in this manner. As noted above, the period relevant for present purposes is 2012. The position in relation thereto is as set out herein above. 10. It remains only to notice the submission made by learned counsel for the respondent that the matter was brought to the High Court by the Department by way of a sales tax reference (under s. 47 of th e 1990 Act ) rather than under the Act.
+
+[39] This error, with respect, is of no consequence. No notice was taken of it by the High Court nor was it pursued there by the respondent. An C.P.L.A.109 -L/2024 -:9:- equivalent provision exists in the Act: see s. 34A , as it stood at the relevant time . The reference under s. 47 of the 1990 Act was a mere procedural lapse of no relevance in the facts and circumstances of the present case. 11.
+
+[40] For the foregoing reasons the leave petition was converted into an appeal and the question posed in para 2 herein above answered in the affirmative, in favor of the Department. The appeal was accordingly allowed. There will be no order as to costs. Judge Judge Judge Islamabad, the 24th April, 2025 Naveed /* Approved for reporting

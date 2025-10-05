@@ -1,0 +1,131 @@
+Case No: C.A.441/2010
+Case Title: Dy. Commissioner of Income Tax v. National Bank of Pakistan
+Subject: Tax/Income Tax
+Judge: Mr. Justice Munib Akhtar
+Judgment Date: 08-01-2019
+Upload Date: 15-05-2019
+Citations: 2019 SCMR 1011
+SC Citations: 2019 SCP 91
+PDF URL: https://www.supremecourt.gov.pk/downloads_judgements/C.A._441_2010.pdf
+
+[1] order dated 9.3.2010 passed by the High Court of Sindh, Karachi in ITA Nos. 533 & 534 of 2000 ) The Deputy Commissioner of Income Tax, Circle C -4, Karachi (in both cases) … Appellant (s) vs M/s National Bank of Pakistan, Karachi (in both cases) …Respondent (s) For the Appellant (s) : Dr. Farhat Zafar, ASC Mr.
+
+[2] Abdul Hameed Anjum, Secy (L aw) FBR For the Respondent (s) : Mr. Salman Pasha , ASC. Date of hearing : 8.01.2019 JUDGMENT Munib Akhtar , J.- These appeals arise under the Income Tax Ordinance, 1979 (“1979 Ordinance”) , and relate to assessment years 1991 -92 and 1992 -93. The question raised has been agitated before , including at least twice before this Court.
+
+[3] It is this: was the interest earned by financial institutions on Government securities liable to be taxed on accru al or on receipt basis? The Department contends for the former, the respondent assessee for the latter , CAs 441 - 2 answer. The learned High Court in the impugned judgment answered in favor of the assessee -bank , and leave was granted to the Department vide order dated 29.06.2010 to consider whether this was “in conformity with the relevant provisions of the Income Tax Ordinance or otherwise”. 2.
+
+[4] It is convenient to set out the relevant statutory provisions at the outset: “17. Interest on securities .- (1) The following income shall be chargeable under the head "Interest on securities", namely: - (a) interest on any securities of the Federal Government or a Provincial Government receivable by an assessee in any income year; and (b) interest on debentures or other secur ities for money issued by, or on behalf of, a local authority or a Pakistani company receivable by an assessee in any income year. 32.
+
+[5] Method of accounting .- (1) Income, profits and gains except income from dividends, shall be computed for purposes of sections 17, 19, 22, 27 and 30 in accordance with the method of accounting regularly employed by the assessee. ” 3. Learned counsel for the appellant -Department submitted that it was well known that two methods of accounting were adopted in this country.
+
+[6] One w as the mercantile system, in which receipts (and expenses) were recorded as accrued. This was also known as the accrual basis of accounting. In terms of the other system receipts were recorded when actually received , and expenses when so incurred. This was the receipt basis of accounting. Financial institutions including banks adopted the accrual basis of accounting.
+
+[7] That was the method regularly employed by them, and hence their income and profits and gains for purposes of the 1979 Ordinance had to be comp uted on such basis. This was the proper interpretation and application of s. 32(1), which specifically referred to s. 17 as well. Thus, the interest on securities under the latter provision had to be recorded on accrual basis and reflected, and brought to tax, accordingly in the relevant income and assessment years.
+
+[8] The respondent however offered such interest to tax on receipt basis, and thus in relation to CAs 441 - 3 the income year in which actually received. This was contrary to the correct (accrual) basis, both i n law and on the facts. The learned Appellate Tribunal had so held , dismissing (on this point) the respondent’s appeal to that forum.
+
+[9] However, t he learned High Court, relying on an earlier decision of the same Court, had reversed. It was submitted that the High Court had made an error in law in doing so. Various cases were cited in this regard , which will be considered below. It was prayed that the appeals be allowed. 4. Learned counsel for the respondent defended the impugned judgment and submitted that the correct result had been reached, both in law and on the facts.
+
+[10] It was submitted that in addition to the accrual and receipt bas es of accounting there was also a third method, known as the “hybrid” system. Learned counsel submitted that in terms of the lat ter system books of account were maintained partly on accrual basis and partly on receipt basis. Income was computed and offered to tax accordingly.
+
+[11] It was submitted that there was nothing in s. 32 that prohibited an assessee from adopting such a “hybrid” system , which had been recognized in the case law. Insofar as the respondent was concerned, its practice since long (and in line with that followed by other banks) was that while the accrual system was used generally, in relation to interest from Governmen t securities it was the receipt system that was adopted.
+
+[12] That was how income was computed and , thus, offered to tax. That was all that there was to it. It was emphasized that for a considerable period , and in relation to a great many assessment years , the Department had accepted income accounted for on the “hybrid” basis. However, the Appellate Tribunal had in between suddenly changed course and denied that income of interest from securities could be so booked.
+
+[13] This change was erroneous in law. It had led t o considerable turmoil, reflected in the number of cases that resulted including matters that had travelled to this Court. It was submitted that the matter was finally resolved in this Court in 2014. In the case at hand the learned CAs 441 - 4 High Court had reached t he correct result and its decision ought to be upheld.
+
+[14] Learned counsel also relied on the relevant case law. 5. We have heard learned counsel as above, and considered the record and the case law. The issue has been set out above. It will be convenient to str aightaway go to the case law. The first decision requiring consideration is a judgment of the Sindh High Court dated 18.09.2002.
+
+[15] It was reported some years later as Pakistan Industrial Credit and Investment Corporation Ltd. v. Commissioner of Income Tax an d others , being reported first at 2006 PTD 1400 and then subsequently also at (2008) 97 Tax 64. A number of assessment years (and thus tax references ) were involved. Four questions of law were considered by the learned High Court of which the fourth is rel evant for present purposes.
+
+[16] It was: “Whether an assessee could simultaneously maintain two different systems of accounts” (pg. 1403) . The facts were that the assessee, a development finance institution, gave loans for industrial projects on which it earned interest income. That income was accounted for on accrual basis. However, if the loan became doubtful or bad, it was transferred to a “suspense account ”.
+
+[17] In respect of such loans, interest was accounted for on ly when actually received . The assessee submit ted that it had adopted a “hybrid” system and could therefore account for the interest on the loans placed in the suspense account on receipt basis. The Department demurred and submitted that such interest also had to be accounted for on accrual basis.
+
+[18] The High Court observed that the “crux of the controversy” rested on the answer to the fourth question (pg. 1405) . It was noted that, as contended for the assessee , the Appellate Tribunal had allowed for the “hybrid” system of accounting till its attention wa s drawn to a decision of the Supreme Court of India, reported as State Bank of Travancore v.
+
+[19] Commissioner of Income Tax (1986) 158 ITR 102. There, by majority, that Court had held that a “hybrid” system was inconsistent with the provisions of the (Indian) Income Tax Act, 1961, and interest had to be accounted for on accrual basis. The attention of the learned High Court was also drawn to a CAs 441 - 5 subsequent decision of the same Court, UCO Bank v.
+
+[20] Commissioner of Income Tax 237 ITR 8891 (also reported at 1999 PTD 3752) where a different view was taken and the earlier decision was distinguish ed. After a careful review of the case law and the statutory provisions (as noted above) the learned High Court concluded that the fourth question had to be answered in the affirmative.
+
+[21] It was held that “an assessee could in law apply the hybrid system of accounting treating some transactions according to accrual or mercantile system and others according to cash system” (pg. 1409). The majority view in State Bank of Travancore v. Commissioner of Income Tax (1986) 158 ITR 102 was found to be not good law. 6.
+
+[22] We may note that the Department petitioned this Court for leave to appeal against the aforementioned judgment. However those leave petitions (CP Nos. 1107 -1110 -K of 2002) were dismissed as withdrawn in term s of the order dated 01.12.2004 . 7. The next case to consider is Muslim Commercial Bank Ltd. v.
+
+[23] Deputy Commissioner of Income Tax and others 2004 PTD 1901 (herein after the “ MCB case”) , also a decision of the Sindh High Court. The issue was the same as here: the bank maintained its accounts on the accrual system but accounted for interest on Government securities on receipt basis. After the assessment had been framed, the Department sought to reopen the case on the basis that this “ hybrid” system could not be followed.
+
+[24] The matter came before the High Court by way of a constitutional petition. The petition was allowed and the notice under s. 65 was quashed. As presently relevant, it was noted as follows (p p. 1908 -9; emphasis supplied ): “From a bare perusal of section 32 of the repealed Ordinance it is absolutely clear that the provisions of section 17 were subservient to or were regulated by the above section 32(1) of the repealed Ordinance and income from interest on Government Secur ities would be compute for section 17(1)(a) of the repealed Ordinance in accordance with the method of accounting regularly employed by the assessee.
+
+[25] It was asserted by respondent No. 1 in his counter affidavit that the petitioners were employing the CAs 441 - 6 mercantile method of accounting, according to which interest/income accruing on Government Securities was to be disclosed on accrual basis and not on cash/receipt basis. The petitioners did not controvert the above assertion by affidavit in rejoinder or objections to the counter  affidavit of respondent No. 1.
+
+[26] However, Mr. Iqbal Salman Pasha during the course of arguments submitted that the petitioners were following the hybrid method of accounting which per mitted them to treat or disclose the interest/income from Government Securities on receipt/ cash basis as they were entitled to follow either the mercantile method or cash method, according to their choice or discretion.
+
+[27] In these circumstances it will not be possible to give a definite finding relating to the method of accounting followed or applied by the petitioners as it will require a factual inquiry …. It is also to be noted that the petitioners in the past also had declared or included the income/inter est from Government Securities on [receipt] basis including the relevant assessment year and such practice of the petitioners was not objected to and assessments were framed according to the disclosures of the interest/income from Government Securities on [receipt] basis .
+
+[28] In presence of such facts the assessment could not be reopened under section 65 of the repealed Ordinance as in framing the assessment and accepting the contention of the petitioners that the income/interest from Government Securities was liable to be taxed on receipt basis had been accepted by the Assessing Authority after consideration of all the material facts on record with application of mind and the assessment was consciously framed.
+
+[29] Notice under section 65 was issued on mere change o f opinion which was legally permissible, thus rendering it was in excess of jurisdiction, without lawful authority and void.” (Before proceeding further, we may note that in the passage above, in the judgment the word “accrual” appears in place of the word “[receipt]” , as substituted twice herein above.
+
+[30] In our view the word as found in the report in those places was clearly a typographical error. ) Learned counsel for the respondent relied strongly on this decision. While it certainly supports the case for recognizing a “hybrid” system of accounting, this conclusion is somewhat diluted by what the learned High Court said as regards the actual facts before it, as noted in the first sentence emphasized above.
+
+[31] However, what is more important is what happened subsequently in this Court. 8. On the same day ( 03.04. 2004 ) that t he aforementioned judgment was given , the same learned Division Bench also gave judgment in two petitions filed by Habib Bank Ltd. The issue there was the same , and t he petitions were allowed.
+
+[32] A little earlier, on 26.03.2004 , the learned Division Bench had also given judgment on a petition filed by a third bank, ANZ Grindlays Bank PLC. CAs 441 - 7 Again , the issue was the same , and the petition was allowed . The judgment s given in all four matters were (as p resently relevant) identical in form and content.
+
+[33] More particularly, all the judgment s contained the passage cited above . As far as c ould be ascertained, the Department did not appeal the judgment in the MCB case. However, it did file appeals against the j udgments in the cases of Habib Bank and ANZ Grindlays Bank. Those appeals were dismissed by this Court by the judgment reported as Commissioner Income Tax v.
+
+[34] Habib Bank Ltd. and ANZ Grindlays Bank PLC 2014 SCMR 1557 (herein after the “Habib Bank case”) . In view of the almost complete identity of all the judgments given in the High Court, the reported decision in the MCB case must also be regarded as having been upheld. In the Habib Bank case it was held by this Court as follows (pg. 1561; emphasis supplied) : “Considering the provisions of sections 17 and 32 of the Ordinance, reproduced above, we cannot help but notice that section 32 provides an exception to the computation of income set out in section 17, which obviously includes section 17(1)(a).
+
+[35] In these circumstances, the impugned judgments rendered by the High Court have in our opinion correctly held that the respondent - Banks were justified in adopting the method of accounting which was hybrid and had been consistently used by the respondent - Banks since long.” 9. The next case to consider is yet a nother decision of the Sindh High Court, Habib Bank Ltd. v.
+
+[36] Commissioner of Income Tax 2009 PTD 443. (In the appeals at hand, the learned High Court held in favor of the present respondent on the basis of this judgment .) In the cited case, four questions of law were involved, of which the third related to the present issue. This question was considered by the learned High Court at pp. 454 -8.
+
+[37] It found that in respect of the securities specifically involved , being th e Pakistan Investment Bond s, the interest accrued on the day on which it actually became due and receivable. The finding s were thus tied to certain specific securities which were considered by the learned Division Bench in great detail.
+
+[38] In our view, this d ecision, with respect, is not really germane to the manner in which the issue has been raised before us, where the question was framed and argued in a more generalized manner. CAs 441 - 8 10. We now come to a recent decision of the Islamabad High Court, Commissioner of I ncome Tax v.
+
+[39] Askari Commercial Bank Ltd. 2018 PTD 1089. A number of tax references (some filed by the Department and others by assesse es/taxpayers) were disposed of by the High Court. One of t he issue s was the same as now before us, although the tax refere nces arose not just under the 1979 Ordinance but also under the corresponding provisions of the Income Tax Ordinance, 2001 (“2001 Ordinance”).
+
+[40] The High Court considered both sets of provisions, focusing in particular on the word “receivable” used in s. 17( 1) of the 1979 Ordinance, and “due” and “entitled” as used in subsections (1) and (2) respectively of s. 34 of the 2001 Ordinance (which contains a statutory explanation of what is meant by accrual based accounting).
+
+[41] It was observed that there was, as here relevant, no material difference between the corresponding provisions under the two Ordinances. As to the facts actually before it, the learned High Court observed as follows (pg. 1104) : “15. It is not the case of the Banks that they have regularly emplo yed 'cash basis' as the method of accounting for recording income which is derived from interest on Government securities.
+
+[42] On the contrary, the Banks acknowledge that they have regularly employed the method of accounting termed as on 'accrual basis' for re cording income derived from interest on Government securities i.e. as receivables and earned regardless of the time of actual receipt. The recording of income by the Banks in their respective accounts in respect of interest from securities in a tax year as receivable or earned by employing the method of accounting on 'accrual basis', explained under section 34, is the relevant and crucial event for chargeability of tax under the Ordinance of 2001. ” The decision of this Court in the Habib Bank case was cit ed before the learned High Court.
+
+[43] It was observed as follows (pg. 1096; emphasis supplied): “9. … We therefore hold that the timing for offering income for taxation purposes relating to interest on securities under the Ordinance of 1979 was solely depend ent on the method of accounting which was regularly employed by the Banks . If the method of accounting termed as on 'cash basis' was employed then income was required to be recorded in the books of account in the tax year when the interest or part thereof was actually received.
+
+[44] In the case of the instant References, on the factual CAs 441 - 9 side, it stands determined that the Banks were regularly following and had adopted the mercantile, or in other words the 'accrual basis' of accounting method. This was never conte sted by the Banks. Moreover, it is not the case of the latter that income from interest was recorded in the accounts on the basis of actual receipt nor that the recording of income in the books of accounts was based on the method of accounting known as on 'cash basis'.
+
+[45] We have carefully gone through the judgment of the august Supreme Court rendered in the [ Habib Bank case] and we feel that our above interpretation stands fortified. In the facts before the august Supreme Court, the respondent Banks had adopt ed the method of accounting which was hybrid while in the instant tax References the method employed was mercantile or on accrual basis.
+
+[46] The august Supreme Court has affirmed in the said judgment that the regularly adopted method of accounting by an assess ee will inevitably determine the tax liability in the case of interest on securities . As the interest on securities were not recorded in the accounts of the Bank on 'cash basis' i.e. when actually received or paid, therefore, the relevant tax year was when they were shown or recorded in the accounts as receivable or earned. ” It was accordingly held that the manner in which the banks had offered inter est income to tax was incorrect.
+
+[47] It ought to have been offered on the basis of the system of accounting actually used by them, i.e., the accrual method. 11. The banks petitioned this Court for leave to appeal against the aforesaid judgment. By order dated 05.06.2018, leave was refused and the petitions dismis sed (CP Nos.  etc.) . The reasoning of the High Court and its analysis of the relevant provisions was essentially accepted , as was its application of the same to the facts and circumstances before the Court.
+
+[48] It was expressly recognized that there could be a “hybrid” system of accounting, which was “a co mbination of both cash and accrual basis accounting methods” (para 4). It was also observed that the ratio of the judgment in the Habib Bank case was “that the regularly adopted method of accounting by an assessee will inevitably determine the tax liabilit y in the case of interest on securities” (para 7). 12.
+
+[49] Having considered the case law, in our view two broad propositions emerge in relation to the 1979 Ordinance (with which alone we are here concerned) . Firstly, as a matter of law, an assessee was not limit ed to using either the accrual or the receipt CAs 441 - 10 basis of accounting. It was, in law, permissible to use the “hybrid” system of accounting by mixing and merging elements from the other two systems.
+
+[50] This was a question of law , and must be regarded as having be en answered and settled accordingly. 13. Secondly, i f such question arose, then i t had to be shown as a matter of fact in respect of the income year corresponding to the given assessment year that the assessee had, in fact, regularly employ ed the “hybrid” sys tem of accounting.
+
+[51] That is what was required by s. 32 of the 1979 Ordinance. This was a question of fact, and therefore had to be dealt with and answered accordingly . However, for purposes of these appeals, what has just been said remains subject to consid eration of an additional submission made by learned counsel for the re spondent, to which we now turn. 14.
+
+[52] As noted above, learned counsel had submitted that for many years pr eceding the assessment years in question interest income on Government securities was offered to tax on r eceipt basis. This had been accepted as such by the Department, and assessments framed accordingly. Attention was drawn to the plea specifically taken in this regard by the respondent, as noted in the assessment order itself.
+
+[53] From the r ecord as available, it appears that this plea was not accepted only because of a change in view by the Appellate Tribunal (in some other case) . Learned counsel for the respondent submitted that the past practice could not be so upset. As we understood it, what was in effect contended was that regardless of whether, in fact, the respondent was regularly employing the “hybrid” system , the practice adopted by the respondent and accepted by the Department precluded the latter from rejecting it in respect of the assessment years in question.
+
+[54] We have considered this submission. It will be noted from the passage from the MCB case cited above that the learned High Court had, as a matter of fact in relation to the assessment years before it, expressed an inability to make a determination whether the “hybrid” system was being actually applied.
+
+[55] However, the learned High Court had emphatically accepted the argument that there CAs 441 - 11 was an established past practice of accepting interest income being offered to tax on receipt ba sis. In this Court, in the Habib Bank case (which can, as explained, be regarded as a decision in appeal against the MCB case) it was accepted that the accounts were in fact being maintained by applying the “hybrid” system.
+
+[56] In our view, it is not necessary for us to determine whether, in the income years corresponding to the assessment years in question, the present respondent did, in fact, maintain its books in terms of the “hybrid” system. It suffices to accept that there was a past practice that interest income offered on receipt basis was accepted as such by the Department.
+
+[57] We may note that learned counsel for the appellant placed before us the assessment order (dated 14.03.1995) in respect of the respondent for the assessment year 1993 -94. This was to s how that there was no settled practice as claimed. With respect, this assessment order is of no relevance as it relates to an assessment year after the ones in contention.
+
+[58] The position in the years prior to the ones at hand had to be shown , if at all the D epartment wished to rebut the submission made by learned counsel for the respondent. Such record was not, however, produced. No reason was given by the Department to depart from the stated practice, other than the change in view of the Appellate Tribunal.
+
+[59] However, that change in view was patently incorrect since we have held that it has long been accepted, and also stands affirmed by this Court, that as a matter of law the “hybrid” system of accounting could be adopted under the 1979 Ordinance. The approach taken by the High Court in the MCB case, in the passage cited above, in relation to the past practice was correct and is hereby endorsed.
+
+[60] It follows that the Department was wrong in refusing the accept interest income offered on receipt basis in respect o f the assessment years at hand, and the learned Appellate Tribunal erred materially in dismissing the respondent’s appeal s in this regard. In our view, the learned High Court reached the correct conclusion in law in allowing the tax references filed by the respondent.
+
+[61] CAs 441 - 12 15. In view of the foregoing discussion, we conclude that these appeals must fail . They are hereby dismissed. There will be no order as to costs. Judge Judge Judge Announced in open Court on May 15, 2019 at Islamabad. Judge Approved for reporting

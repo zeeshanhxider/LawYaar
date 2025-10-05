@@ -1,0 +1,73 @@
+Case No: C.A.16/2022
+Case Title: M/s Chawala Footwear, Lahore v. Commissioner Inland Revenue, Lahore, etc
+Subject: Tax/Income Tax
+Judge: Mr. Justice Shahid Waheed
+Judgment Date: 14-01-2025
+Upload Date: 17-02-2025
+Citations: N/A
+SC Citations: 2025 SCP 39
+PDF URL: https://www.supremecourt.gov.pk/downloads_judgements/c.a._16_2022.pdf
+
+[1] judgment dated 26.04.2017 passed by the Lahore High Court, Lahore in ITR No. ) M/s Chawala Footwear, Lahore …Appellant (s) Versus Commissioner Inland Revenue, Lahore, etc …Respondent(s) For the Appellant (s) : Ch. Mumtaz ul Hassan, ASC via video link from Branch Registry Lahore For the Respondent (s) : Mr.
+
+[2] Ahmad Pervaiz, ASC via video link from Branch Registry Lahore Date of Hearing : 14.01.2025 O R D E R Shahid Waheed , J: The unsuccessful taxpayer has brought this appeal by leave of this Court to challenge the opinion recorded by a Division Bench of the Lahore High Court on the reference of the Revenue’s questions emanating from the judgment made by the Appellate Tribunal for Inland Revenue ( the Tribunal ). 2.
+
+[3] The short question in this appeal concerns the foundation of the proceedings taken out by the Revenue under section 161, read with section 205 of the Income Tax Ordinance, 2000 (the Ordinance ). The taxpayer's primary concern centred on a legal principle established C.A. 2 by this Court in the case of MCB Bank1 (the MCB), which governs the application of section 161 of the Ordinance .
+
+[4] The taxpayer strongly contended that this principle must be adhered to rigorously and without compromise. The taxpayer argued that any legal proceedings that stray from this foundational safeguard could potentially render any resulting order —declaring it in default of its tax obligations —utterly invalid.
+
+[5] This perspective underscored the necessity for a thorough hearing, one that delves deep into the complexities and nuances of the case at hand. It was therefore deemed appropriate to grant leave to appeal to consider, inter alia , whether the case circumstances fell within the parameters set down by this Court in the MCB. 3.
+
+[6] It will be in place to provide a brief overview of the background facts that have led to the present appeal. The taxpayer, identified as an Association of Persons (AOP), is engaged in the manufacturing and selling of plastic shoes and chappals. For the tax year 2012, the taxpayer submitted its return through the Federal Board of Revenue (FBR) e-portal, declaring total purchases amounting to Rs.491,080,333 /-.
+
+[7] This figure notably exceed ed the threshold required for an entity to qualify as a withholding agent. As a result, the petitioner was categorised as a “ prescribed person ” under section 153(7) of the Ordinance and, as such, was required to deduct or collect tax when making payments, as outlined in sections 1 Commissioner Inland Revenue Zone -I, LTU v.
+
+[8] MCB Bank Limited (2021 SCMR 1325) C.A. 3 149, 150, 152, 153, 155 and 156 of the Ordinance in conjunction with section 158 thereof. This obligation was subject to the conditions, limitations, exemptions, concessions specified therein and in the Second Schedule and related Notification. It is important to note that the petitioner, after deducting or collecting tax, was required under section 160 of the Ordinance to pay the amount to the Commissioner within the timeframe and in the manner specified by the FBR according to the Rule 43 of the Income Tax Rules, 2022 ( the Rules ). 4.
+
+[9] To ensure compliance with the withholding tax provisions, the taxation officer issued a notice on the 22nd of January, 2013. This notice, which was formulated under rule 44(4) of the Rules mandated the taxpayer to provide a detailed breakdown of payments made to various parties categorised under different expenditure heads.
+
+[10] Additionally, the taxpayer was required to present evidence of any taxes that had been deducted and deposited, which should be documented in the form of payment challans. The taxpay er submitted a reply that included information and supporting documents in response to inquiries from the taxation officer.
+
+[11] However, upon conducting a preliminary examination of the materials provided, the taxation officer identified several discrepancies that raised concerns. As a result, the taxation officer issued a formal notice to the taxpayer under section s  of the Ordinance, which C.A. 4 addressed these irregularities in detail.
+
+[12] Following this notice, the taxpayer submitted a final reply to clarify and rectify the issues raised. Nevertheless, after carefully considering this additional information, the taxation officer determined that the taxpayer remained in default concerning their tax obligations. Consequently, a demand for payment was created through an order (the original order) issued on the 31st of May, 2013. 5.
+
+[13] The taxpayer then sought recourse by appealing the original order , which led to a review by the Commissioner (Appeals). Ultimately, in an order dated 18th of June 2013, the Commissioner partially confirmed the charges related to “purchases”, “freight”, “building repair”, “security expenses” , “staff welfare”, “travelling expenses”, and “freight outward”.
+
+[14] The finding was returned on the ground that the petitioner failed to demonstrate that it had acted lawfully by not deducting the tax on the payments under these heads. However, the Commissioner (Appeals) deleted the charges pertaining to “Claim of Return” , and “Salaries”. The rest of the matter was remitted to the taxation officer for re -appraisal .
+
+[15] Both the taxpayer and the Revenue were dissatisfied with the conclusions rendered by the Commissioner in the appellate order. As a result, both parties decided to pursue their grievances further by filing separate appeals to the Tribunal , seeking a decision on their disputes. C.A. 5 6. After considering the arguments presented by both parties and reviewing the case records, the Tribunal reached a conclusion regarding the application of tax law.
+
+[16] It determined that the taxation officer had levied tax under section 161 of the Ordinance without clearly identifying the specific parties on whose behalf the taxpayer had failed to withhold the required tax. As such, the Tribunal struck a point: without explicitly mentioning these parties' names, it would be impossible for the taxpayer to recover their owed amounts ; this omission rendered section 161(2) of the Ordinance inapplicable.
+
+[17] Consequently, based on these observations, the Tribunal issued an order on 13th of February , 2014. It annulled the decisions made by the lower fora, thereby favouring the taxpayer's appeal while dismissing the Revenue's appeal. 7. The Revenue was unsatisfied with the Tribunal's reasoning to absolve the taxpayer of its tax obligations.
+
+[18] Consequently, the Revenue applied to the High Court under Section 133, seeking an opinion on a legal question. The Revenue questioned whether, given the facts and circumstances of the case, the Tribunal had been justified in overturning the decisions made by the lower authorities. The Revenue pointed out that the Tribunal appeared to overlook the precedent set by this Court in the case of Bilz ( the Bilz )2, which clearly indicated that the burden of proof for demonstrating that 2 Messrs.
+
+[19] Bilz (Pvt.) Ltd. v. Deputy Commissioner of Income -Tax, Multan and another (2002 PTD 1 = PLD 2002 SC 353) C.A. 6 tax deductions had been made rested squarely on the taxpayer. This situation raised concerns about whether the Tribunal adequately considered the taxpayer's obligations. After reviewing the matter, the High Court clarified that the Tribunal's findings were inconsistent with the law.
+
+[20] The High Court accepted the reference and noted that once the income tax authorities determined that the taxpayer had made payments subject to withholding tax, the responsibility shifted to the taxpayer to demonstrate that there was no default on its part. Consequently, the taxation officer was not obliged to specify the recipient's details to the withholding agent. 8.
+
+[21] A rundown of the facts leading up to this appeal brings forth two opinions to found a demand under section 161 of the Ordinance. This necessitates comparing them to determine which one is correct to answer the moot question. The Tribunal cracked down on the underpinning of the proceedings taken out under section 161 of the Ordinance because the taxation officer, in his notice, had not identified the parties from whom the tax was not deducted.
+
+[22] Whereas the High Court, based on the Bilz, came to hold that once the taxation officer determined that the taxpayer had made any payment on which it was obliged to deduct withholding tax, the onus shifted to the taxpayer to show that there was no default on its part; and the taxation officer was not required to pinpoint particulars of the recipients to the withholding C.A. 7 agent.
+
+[23] We choose to overlook both of these opinions because, according to the law, taxpayers are obligated to fully disclose all payments made throughout the tax year. This disclosure must be included in the statements required to be electronically filed under section 161 of the Ordinance. This obligation applies even to those payments where no tax has been deducted.
+
+[24] The design of the statement for tax deduction outlined in section 161 of the Ordinance clearly reflects this requirement. It includes designat ed columns for detailing essential information, such as the identity of suppliers, specifics of each transaction, the amount eligible for tax deduction, the tax that has been deducted, the tax that has been paid, and the justifications for any instances where tax was not deducted.
+
+[25] From the structure and content of this mandated statement, the legislature's intent becomes evident: it is compulsory to document the reasons for any non-deduction of tax, particularly when that non - deduction relies on an “exempti on certificate.” Likewise, it is also necessary to provide an explanation for non - deduction if it stems from any other legal provisions.
+
+[26] Consequently, if a taxpayer fails to collect or deduct tax from payments made during the tax year, such inaction is deemed as a default under section 161 . Therefore, the point that sets the machinery of section 161 going to determine the tax liability is the failure to either collect tax or deduct it.
+
+[27] Before going further, we take a little pause to C.A. 8 say that even the power to put that point on is not unfettered. If the taxation officer wants to dig so deeply into the taxpayer's pocket that only his elbow is showing, the law seeks to be very sure that the taxation officer is properly indoctrinated and has had some reason or information that satisfies the test of objectiveness to reach as far as the law requires into the taxpayer’s trousers to determine its failure.
+
+[28] Thus and so the MCB held, “ there must, at least initially, be some reason or information available with the Commissioner for him to conclude that there was, or could have been, a failure to deduct. That reason or information must satisfy the test of objectiveness, i.e., must be such as would satisfy a reasonable person looking at the relevant facts and information in an objective manner.
+
+[29] The threshold is not so stringent as to require “definite information” (using this term in the sense well known to income tax law), but it is also not so low as to be bound merely to the subjective satisfaction of the Commissioner .” It is important to note that upon successfully crossing this threshold, the notice under section 161 can be issued, and it is only then that the taxpayer can be brought under a burden to show that it is not in default. 9.
+
+[30] We will now analyse the validity of the notice issued in relation to this appeal, drawing on the principles outlined above. A detailed examination of the notice reveals several key elements: the names of the persons C.A. 9 from whom the purchases were made, a thorough comparison between the purchases declared and those verified, and a breakdown of the remaining purchases that were subject to tax.
+
+[31] Furthermore, the notice highlights discrepancies in the valuation of imports and specifies the categories under which the tax was applicable. This indicates that there was careful consideration of any failures to deduct tax, along with an assessment of the underlying bases and amounts involved. Therefore, it is clear that the notice was not simply a fishing expedition.
+
+[32] Consequently, it meets the test mentioned above, leading us to conclude that the demand created against the taxpayer was well -founded. 10. Based on this analysis, we conclude that this appeal lacks merit and is therefore dismissed accordingly. Judge Judge Judge Islamabad 14.01.2025 APPROVED FOR REPORTING Rashid */

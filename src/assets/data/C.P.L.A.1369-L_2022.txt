@@ -1,0 +1,47 @@
+Case No: C.P.L.A.1369-L/2022
+Case Title: Commissioner Inland Revenue, Lahore v. M/s Azam Textile Mills Limited, Lahore
+Subject: Tax/Income Tax
+Judge: Mr. Justice Shahid Waheed
+Judgment Date: 15-01-2025
+Upload Date: 17-02-2025
+Citations: N/A
+SC Citations: 2025 SCP 40
+PDF URL: https://www.supremecourt.gov.pk/downloads_judgements/c.p._1369_l_2022_r.pdf
+
+[1] order dated 16.03.2022 passed by the Lahore High Court, Lahore in PTR No.) Commissioner Inland Revenue, Lahore …Petitioner (s) Versus M/s Azam Textile Mills Limited, Lahore …Respondent(s) For the Petitioner (s) : Mr. Ahmad Pervaiz, ASC via video link from Branch Registry Lahore For the Respondent (s) : N.R.
+
+[2] Date of Hearing : 15.01.2025 O R D E R Shahid Waheed , J: This petition presents a solitary question for a grant of leave to appeal against the order issued on the 16th of March, 2022, by the Division Bench of the High Court. This order arose from an application lodged by the Revenue under Section 133(1) of the Income Tax Ordinance, 2001 ( the Ordinance ).
+
+[3] The question is whether the transactions conducted by the respondent company, taxpayer, with its associated entity, M/s Saritow Spinning Mills Limited ( the Company ), qualify as “sales.” This question is pivotal, as it may have significant implications for determining tax obligations and classifying transactions under the Ordinance. 2.
+
+[4] The taxpayer is a public limited company that is publicly traded on the stock exchange. Its business operations revolve around the manufacturing and selling of C.P.L.A.1369 -L/2022 2 yarn, catering to local and international markets. For the tax year 2003, the taxpayer’s tax return was selected for an audit in accordance with Section 177 of the Ordinance.
+
+[5] The taxation officer identified several discrepancies in the taxpayer’s records during the audit. One significant issue related to the transfer of raw materials to the company. Since the other discrepancies are not the subject matter of this petition, we will not touch upon them and will confine ourselves to this issue.
+
+[6] The taxation of ficer interpreted the transaction concerning the transfer of raw materials as a sale, which he believed should be assessed under Section 169 of the Ordinance to determine the taxpayer's final tax liability. However, the taxpayer opposed this conclusion. The taxpayer argued that its buying and sales operations were centralised within their structure.
+
+[7] It explained that cotton was procured in large quantities collectively, and once one of the group members made the payment, the cotton would then be allocated t o other mills within the group based on their individual needs. The taxpayer maintained that since these transfers occurred within the group without any exchange of monetary consideration, it should not be classified as sales.
+
+[8] The taxation officer did not accept this reasoning. He concluded that the transactions should indeed be regarded as sales, which were netted off for tax purposes. He explained the rationale of his conclusion that if there had been no sales activities, the taxpayer would not have recor ded the resulting net amounts as sales of raw materials in its profit and loss statements.
+
+[9] This finding culminated in C.P.L.A.1369 -L/2022 3 an amended assessment order under section 122(1) of the Ordinance, by which tax demand was created. 3. The taxpayer subsequently challenged the amended assessment order before the Commissioner (Appeals). After thoroughly reviewing the case and the arguments presented, the Commissioner (Appeals) upheld the amended assessment order.
+
+[10] The taxpayer then took the matter to the Appellate Tribunal Inland Revenue ( the Tribunal ). In this forum, the taxpayer effectively articulated its position and persuaded the Tribunal to accept its arguments. Ultimately, the Tribunal decided in favour of the taxpayer, concluding that the transaction recorded in the ledger account could not be deemed a sale, as it lacked the essential element of cash consideration. 4.
+
+[11] The Revenue was dissatisfied with the reasoning provided by the Tribunal and applied Section 133 of the Ordinance, seeking the High Court’s opinion on a contentious issue. The question was: “ Whether , on the facts and in the circumstances of the case, the ATIR was justified to delete presumptive tax on the sales of raw materials to sister concern, ignoring the express provisions of law contained in Section 153(6) of the Income Tax Ordinance, 2001? ” To address this question, the High Court urged the Reve nue to substantiate its claim that the transactions recorded in the ledger should be classified as sales.
+
+[12] The High Court wanted clarity on why these transactions should not be considered arrangements between associated concerns that lacked C.P.L.A.1369 -L/2022 4 monetary consideration. In response, the Revenue referenced an observation made in the amended assessment order, indicating that the taxpayer had included the net amount in its sales, effectively demonstrating inter -company sales of raw materials.
+
+[13] However, the High Court found this justification insubstantial, noting that the transactions lacked any underlying consideration. After careful deliberation, the High Court concluded that there was no justifiable reason to categorise the alleged transactions as sales, especially since such classifications were based on mere assumptions and conjectural assertions without any concrete evidence to support them. 5.
+
+[14] After taking into account the arguments presented, we find ourselves in agreement with the perspective expressed by the Division Bench of the High Court. It is essential to emphasise that, in common parlance, a sale is recognised as occurring when the ownership of goods is transferred to the buyer and payment for these goods has been made.
+
+[15] Notably, this payment must take the form of money, commonly referred to as the price of the goods. It is essential to clarify that if the ownership of goods is excha nged for anything other than money, the transaction cannot be classified as a sale; instead, it would be considered an exchange or barter.
+
+[16] To formalise this understanding, we can refer to Section 4 of the Sale of Goods Act of 1930. This section defines a contract of sale as an agreement in which the seller transfers or agrees to transfer ownership of goods to the buyer in exchange for a specified C.P.L.A.1369 -L/2022 5 price. It is evident from this definition that one of the fundamental requirements for a transaction to qualify as a sale is the presence of monetary consideration.
+
+[17] Moreover, sub-section 7(iii) of Section 153 of the Ordinance further elucidates the concept of a sale of goods by providing its definition. This definition encompasses any transaction in which goods are sold, irrespective of whether the payment is made in cash or on credit, and is applicable regardless of the existence of a formal written contract.
+
+[18] According to this definition, it is mandated that a sale must involve the receipt of consideration, which can be either cash or credit. In the present case, however, we observe a significant absence of this critical element of consideration. Consequently, we conclude that the transactions documented in the ledgers merely represent a straightforward transfer of raw materials from one entity to another, devoid of any characteristics of a sale.
+
+[19] As such, we determine that the tax obligations outlined in Section 153 of the Ordinance do not pertain to the transfer of raw materials to the sister concern. 6. In light of the points discussed above, we find no merit in this petition and dismiss it accordingly. Leave to appeal is refused. Judge Judge Judge Islamabad 15.01.2025 APPROVED FOR REPORTING Rashid */ C.P.L.A.1369 -L/2022 6

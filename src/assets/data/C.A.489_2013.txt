@@ -1,0 +1,59 @@
+Case No: C.A.489/2013
+Case Title: The Inspecting Additional Commissioner of Income Tax, Peshawar & another v. M/s A.G.E. Industries (Pvt.) Ltd. thr. its Director
+Subject: Tax/Income Tax
+Judge: Mr. Justice Munib Akhtar
+Judgment Date: 31-03-2021
+Upload Date: 01-07-2021
+Citations: 2021 SCMR 1362
+SC Citations: 2021 SCP 189
+PDF URL: https://www.supremecourt.gov.pk/downloads_judgements/c.a._489_2013l.pdf
+
+[1] JUDGMENT Munib Akhtar , J.: At the conclusion of the hearing, the following short order was made: CA 489,  & 1  -:2:- “For the reasons to be recorded later, Civil Appeals No. 489 -  are allowed whereas Civil Appeal No.  is adjourned.” 2. The matters arise out of the Income Tax Ordinance, 1979 (“Ordinance”) and the point in issue is the applicability or otherwise of clause (9) of Part IV of the Second Schedule to that Ordinance (“Clause 9”).
+
+[2] The Appellate Tribunal had decided against the assessee (on the latter’s appeals) but, on a tax reference filed in the High Court, the decision was reversed by means of the impugned judgment. The department sought leave to appeal, which was granted vide order dated 15.04.2013. The assessment years involved are 1994 -95 and 1995 -96. 3.
+
+[3] Clause 9 was added to the Ordinance in 1991. As originally inserted it was in the following terms (emphasis supplied) : “(9) The provisions of section 80C i n so far as they relate to payments on account of the supply of goods on which tax is deductible under sub -section (4) of section 50 shall not apply in respect of any person, being a manufacturer of such goods, who opts out of the presumptive tax regime: Provided that a declaration of final and irrevocable option is furnished in writing alongwith the return of total income under section 55: Provided further that nothing contained in this clause shall apply to any manufacturer of goods for which special r ates of deduction of tax are specified under clause (c) of sub-section (4) of section 50.” Section 80C, also added in 1991, applied in terms as stated therein a tax regime known as the “presumptive tax regime” (PTR).
+
+[4] This was in contradistinction to the “ normal tax regime”, that otherwise applied in relation to the assessment of income. By the Finance Act, 1996, the main paragraph of Clause 9 was amended so that it read as follows (emphasis supplied): “(9) The provisions of section 80C in so far as they re late to payments on account of the supply of goods on which tax is deductible under sub -section (4) of section 50 shall not apply in respect of any person, being a manufacturer of such goods, unless he opts for the presumptive tax regime: …” Thus, for the words “who opts out of”, the words “unless he opts for” were substituted.
+
+[5] CA 489,  & 1  -:3:- 4. In the tax references filed by the respondent -assessee in the High Court, as many as nine questions of law were raised. However, the crucial question was No. VII, and leave was grant ed in this Court only to consider whether the said question (which was answered in the affirmative) was correctly dealt with by the High Court.
+
+[6] The said question was as follows: “That without prejudice to the all other questions whether the amendment broug ht in Clause -9 part IV to the Second Schedule by way of replacing the phrase “who opts out of” by the phrase “unless he opts for” is not correcting the mischief in clearing the ambiguity existing to save the assessment who maintains proper account.” In eff ect, the learned High Court treated this question as being whether or not the amendment made to Clause 9 by the Finance Act, 1996 would have retrospective effect in the facts and circumstances of the case.
+
+[7] The question was answered in the affirmative, in f avor of the assessee and against the department. 5. In the Appellate Tribunal, the facts as found by that forum were that the assessee -appellant was issued with notices under s. 66A on or about 05.10.1998 in relation to the assessment years involved, 1994 -95 and 1995 -96, on the ground that it had never given the option in writing as required by the first proviso to Clause 9.
+
+[8] The response initially given by the assessee, as presently relevant, was that it had never given the option in writing. However, be fore t he Tribunal the assessee changed course and produced a letter dated 29.12.1994 that it had purportedly written to the concerned tax officer, which stated that the assessee was exercising the option as per the first proviso.
+
+[9] This letter was disregarded by t he Tribunal as being an “afterthought” and inconsistent with the stance earlier taken. It was noted, inter alia, that “the original is not available on the departmental record” and that “it was not filed with the returns”. 6. In the High Court, the assessee a rgued that the amendment made to Clause 9 by the Finance Act, 1996 was declaratory or remedial in nature and therefore had retrospective effect.
+
+[10] After considering what was meant, in law, by a declaratory or remedial statute or amendment, the learned High C ourt concluded that it was not “ strictly remedial in nature” (emphasis in original). CA 489,  & 1  -:4:- However, the learned Court then went on to hold that “the amendment in Clause 9 is simply a change in the mode of assessment, thus procedural in nature”.
+
+[11] It was also held as follows (emphasis in original): “What the amendment has actually done is to change the mode, which is procedural . No substantive right of the appellant has been affected, no new tax has been imposed and only the mode of assessment has been altered. The procedural law, if altered and that too for the benefit of the assessee then in such a case, the amendment would be retrospective and applicable to cases, which are pending before a forum prescribed by law. ” On the foregoing basis it was concluded that th e amendment had retrospective effect and, as noted, question No.
+
+[12] VII was answered in favor of the assessee. 7. Before us, learned counsel for the appellant -department submitted that the assessee kept changing its stance, as found by the Tribunal , and the “fin al” position that it sought to take before that forum, namely that the option had been exercised, was rejected.
+
+[13] That, it was submitted, was a finding of fact, which could not be challenged further and, indeed, was not disturbed by the learned High Court. I t was also submitted that the learned High Court had erred materially in concluding that Clause 9 was merely procedural in nature. It was a substantive provision, and the applicability (or otherwise) of the clause materially altered the “regime” under whic h an assessee was to be treated, i.e., PTR or NTR.
+
+[14] It could not therefore have retrospective effect. It was submitted that the Tribunal had correctly dealt with the matter, and its decision ought to be restored. Learned counsel for the respondent -assessee submitted that the decision impugned was correct and that the appeal ought to be dismissed. 8. After having heard learned counsel and considered the relevant provisions and the record, we concluded that the appeals ought to be allowed.
+
+[15] The principal question was whether the amendment made to Clause 9 in 1996 was procedural in nature and hence retrospective, as held by the learned High Court. Part IV of the Second Schedule to the Ordinance, as st ated in s. 14(1)(d), contained “exemptions from the operation of a ny provision of this Ordinance, subject to the conditions and to the extent specified CA 489,  & 1  -:5:- therein”.
+
+[16] Now, for present purposes, the provisions of the Ordinance could be regarded as having been either substantive or procedural. A clause in Part IV could therefor e be regarded as being substantive or procedural depending on the particular provision of the Ordinance that it gave exemption from. The first question to consider therefore was whether s. 80C was a substantive provision or procedural in nature. 9.
+
+[17] Now, s. 80C was added by the Finance Act, 1991 and Clause 9 was inserted a few months later by the Federal Government through SRO 829(I)/1991 dated 24.08.1991, in exercise of powers conferred by s. 14(2). Section 80C deemed certain payments, as specified therein, as received by certain classes of persons (also as specified ) to be the income accruing to the latter and taxed them at specified rates.
+
+[18] For the payments that were within the ambit of the section, the gross receipts (i.e., the payments themselves) became income. Th us, th e very thing that was the subject matter of the Ordinance and sought to be taxed in terms thereof, was being directly affected and altered. The legal meaning of “income” was changed.
+
+[19] Clearly, this was, and could only be, a substantive provisio n. It followed that Clause 9, which granted an exemption from the operation of this deeming provision, was itself substantive in nature , since on the applicability or otherwise of the clause depended whether the gross receipts in question were to be deemed to be income. 10.
+
+[20] As originally inserted, Clause 9 gave the choice of opting out of s. 80C if the option, as given in terms of the first proviso, was properly exercised. Thus, s. 80C applied unless the “opt -out” was triggered. In other words, the legal meanin g of income stood altered in respect of the payments within the ambit of s. 80C unless the assessee concerned took step s to the contrary.
+
+[21] The amendment made by the Finance Act, 1996 reversed this position. It now provided that it was only if the option giv en in terms of the proviso was exercised that s. 80C applied. In other words, the assessee had to “opt -in” into the PTR. If the option was not exercised, the legal meaning of income, even in respect of the payments within the ambit of s. 80C, was not altered.
+
+[22] Once this becomes clear it is difficult, with respect, to see how, as held by the learned High Court, the amendment could be regarded as procedural, having CA 489,  & 1  -:6:- retrospective effect. Prior to the amendment, the legal meaning of income stood altered to the e xtent of s. 80C unless the assessee did something.
+
+[23] After the amendment, the legal meaning of income did not stand altered unless the assessee did something. Th e two resultant situations were starkly different. Each had a substantive effect that was diametr ically opposed to the other. With respect therefore, the learned High Court erred materially in its answer to question No.VII.
+
+[24] It ought to have been answered in favor of the department and against the respondent. We so held. 11. Once the conclusion was as just arrived at, the result was that the impugned judgment was not sustainable. The point taken by learned counsel for the respondent, that the option had been exercised, was, with respect, not sustainable as it was contrary to the finding of fact given by the Tribunal.
+
+[25] That finding was not disturbed by the learned High Court. The appeals had therefore to be allowed, and this was announced at the conclusion of the hearing. 12. The foregoing are the reasons for our short order. Judge Judge Judge Islamabad, 31.03.2021 Naveed Ahmad/* Approved for reporting

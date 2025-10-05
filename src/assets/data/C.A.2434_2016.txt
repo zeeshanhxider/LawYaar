@@ -1,0 +1,75 @@
+Case No: C.A.2434/2016
+Case Title: Commissioner Inland Revenue, LTU, Islamabad v. M/s Fauji Foundation & another
+Subject: Tax/Income Tax
+Judge: Mr. Justice Shahid Waheed
+Judgment Date: 01-11-2023
+Upload Date: 19-02-2024
+Citations: 2024 SCMR 788
+SC Citations: 2024 SCP 64
+PDF URL: https://www.supremecourt.gov.pk/downloads_judgements/c.a._2434_2016.pdf
+
+[1] judgment dated 25.11.2014 passed by th e Islamabad High Court, Islamabad in Income Tax Reference No.04 of 20 14) Commissioner Inland Revenue, Islamabad … Appellant (s) Versus M/s Fauji Foundation & another … Respondent (s) For the Appellan t : Dr. Farhat Zafar , ASC Raja Abdul Ghafoor, AOR For the Respondent s : Syed Ali Zafar , ASC (via video link from Lahore) Date of Hearing : 01.11.2023 JUDGMENT Shahid Waheed , J.
+
+[2] This appeal , by leave of this Court , is by the Revenue, and it arises out of the proceedings initiated by it to amend the original assessment order of the yearly income return ed by the taxpayer -respondent (Fauji Foundation) . This case initially proposed multiple questions of law for determin ation, and some of them were found to be of public importance which led the matter to reach the appeal stage by leave of this Court but, at the final hearing , the only question presented to us for consideration was whether the increase in the fair market v alue of the subsidiary company ’s shares held by the taxpayer -respondent as long -term investment was taxable under the head “income from business” in terms of s ection 18(1)(d) of the Income Tax Ordinance, 2001.
+
+[3] We will, therefore, limiting ourselves to th is question , relate the facts relevant to brevity. Civil Appeal No.2434 of 20 16 2 2. The respondent -taxpayer, Fauji Foundation, is a charitable trust which derives income from a number of industrial and commercial concerns operating in fertilizers, power, oil & gas exploration & distribution, oil terminal operations, financial services, cement, sugar, cereal, employment services and security service sectors.
+
+[4] On 11th of October, 2012, the taxpayer e -filed its return of income for the Tax Year 2012, declaring income of Rs.8,133,975 , which constituted a deemed assessment order in terms of section 120(1) of the Income Tax Ordinance, 2001. Subsequently, upon examination of the return, the Deputy Commissioner of Inland Revenue found that the taxpayer’s cert ain income chargeable to tax h ad escaped assessment.
+
+[5] As such, a notice under section 122(9) of the Income Tax Ordinance, 2001 , was served upon the taxpayer to show cause as to why amendment of assessment should not be made under section 122(1) read with 122( 5) of the Ordinance. The inc ome which is all eged to have escaped assessment has to be set out in full and in the manner stated in the notice.
+
+[6] We , therefore , reproduce below the relevant extract from the notice: “As per Cash Flow Statement for the year under reference, you have made Long T erm Investment in subsidiary companies to the turn of Rs.3,358,181 (M) and as per Note 10 to the audited accounts you had purchased 637,712,000 ordinary shares of M/s Fauji Cement Company Limited having value of Rs.10 per share.
+
+[7] The same share was p urchased by you on Rs.5 per share, thus your company has earned Rs.5 per share, therefore, you have received benefit to the extent of Rs.3,188,560,000/ - (637,712,000 *5)/. This benefit is taxable under the head income from bus iness in terms of section 18(1 )(d) of the Ordinance .” 3.
+
+[8] The taxpayer in his reply, expostulating with the Taxation Officer, posited that all its income was taxed, and as nothing had escaped assessment, no amendment was required in terms of section 122(5) of the Income Tax Ordinance , 2001 . Traversing the ground for amendment of assessment, the taxpayer stated that hypothetical /notional income could not be taxed under the Income Tax Ordinance, 2001 , which was expressly brought within the deeming provisions of Sections 101, 30 and 39 and, as such, the increase in value of the shares held as long-term investment was a notional income , and could only be tax ed at the time of its disposal.
+
+[9] Based on th is stance , the taxpayer summed up that the machinery of section 122(5) Civil Appeal No.2434 of 20 16 3 could not b e set in motion because no income chargeable to tax had escaped assessment and , therefore , the action taken by the Taxation Officer to amend the assessment was void ab initio. 4.
+
+[10] The Taxation Officer found the objection of the taxpayer untenable. He came to hold that the gain on account of long-term investment reflected at Rs.31,080,219,000 , for the year ending 30th of June, 2012 , had been realized by the taxpayer , and this was evident from the fact that the taxpayer had transferred this gain to its equity/capital ac count so as to make it available for distribution amongst its share holders .
+
+[11] Therefore, it was to be treated as income. Based on this conclusion, he found himself right in assuming the jurisdiction over the taxpayer’s case and ordered a balance tax be paid. On appeal, the Commissioner of Inland Revenue ( Appeal s) did not find any infirmity in the find ings returned by the Taxation Officer, which was upheld by the Appellate Tribunal Inland Revenue. 5.
+
+[12] The taxpayer then took its application under section 133 of the Income Tax Ordinance , 2001 , to the High Court , and by referring to questions of law , sought their answers. Out of the proposed questions, some were about the meaning of definite information. A question was also asked whether section 18 of the Income Tax Ordinance , 2001 , imposes any tax on notional gain by revaluation of shares to market value.
+
+[13] In the same v ein, a question was also raised whether the increase in the market value without sale or disposal of shares is subje ct to tax. On consideration of the matter, the High Court answered that the taxpayer ’s investment in the fina ncial statements was recorded as a notional gain and not as a re alised gain in income , therefore, the same was not chargeable to tax.
+
+[14] The High Court said that the notiona l gain in the value of shares he ld by the taxpayer as recorded in its balance sheet was not a n income from business. As such, it was finally held that under the facts and circumstances of th e case, the Tribunal had reached a wrong conclusion that the provisions of section 18 (1)(d) read with 122(5) were correctly invoked , and the amendment proceedings for the deemed assessment order were invalid.
+
+[15] Civil Appeal No.2434 of 20 16 4 6. Now, on the facts of the case, two sets o f opinions have come to the fore, and we have to examine which one is correct in law and provides us with a valid answer to the question under consideration. The comparative study of the merits of the two opinions makes it easy to under stand that the const ruction of s ection 18(1)(d) of the Income Tax Ordinance, 2001 , turns to answer the question, so we set it out below for better understanding: 18.
+
+[16] Income from business. —(1) The following incomes of a person for a tax year, other than income exempt from tax under this Ordinance, shall be ch argeable to tax under the head Income from Business - (a)……………………………………………………………………………. (b)……………………………………………………………………………. (c)……………………………………………………………………………. (d) the fair market value of any benefit or perquisite, whether convertible into money or not, derived by a person in the course of, or by virtue of, a past, present, or prospective business relationship.
+
+[17] For the purposes of this clause, it is declared that the word ‘benefit’ includes any benefit derived by way of waiv er of profit on debt or the debt itself under the State Bank of Pakistan, Banking Policy Department’s Circular No.29 of 2002 or in any other scheme issued by the State Bank of Pakistan. 7.
+
+[18] It would appear from the perusal of the provision reproduced abo ve that it prescribes a two -pronged test for bringing income under the head "income from business". The first is that any benefit or perquisite must have a fair market value, not necessarily whether it can be converted into money. The second is that a pers on may have received the value of that benefit or perquisite during or under a past, present, or prospective business relationship.
+
+[19] The coexistence of both is necessary. The absence of one of them will not constitute income from a business. In light of thi s, it was for the R evenue to establish that the gain from the long -term investment by the taxpayer in the form of shares in its subsidiary company met the above test and was, on that account, liable to be taxed as business income.
+
+[20] As regards the first cons tituent component of the test, there is no need to go into a lengthy discussion on it , as the notional gain derived by the taxp ayer from the increase in the fair market value of its shares may in appropriate circumstances be counted as “benefit” . However, no definite answer need be given here, in the facts and circumstances of the present case, and also because of the conclusion we reach on Civil Appeal No.2434 of 20 16 5 the second requirement.
+
+[21] Now, we turn to the second constituent component of the test, which is not only important but also complex and, thus, calls for some probing. As such, a few facts are essential to be stated here. It cannot be denied that the taxpayer (Fuji Foundation) is a parent company, and Fauji Foundation Company Ltd. ( FCCL ) is its subsidiary company.
+
+[22] It is als o admitted that the taxpayer had made a long -term investment by purchasing 637,712,000 shares of FCCL at Rs.5, and the taxpayer had declared the value of the said shares at Rs.10 in the return for the tax year 2012. Do these facts show a business relations hip between the taxpayer and FCCL? Or do these facts indicate that the taxpayer had derived any gain or benefit from its long -term investment in the course of or under any business relationship? The principle to be applied in answering this question is whe ther the investment which led to the notional gain was connected with the carrying on of the taxpayer's business.
+
+[23] It bears mentioning that enhanced fair market value of any benefit or prerequisite may be so assessable under Section 18(1)(d) of the Income T ax Ordinance, 2001, where wha t is done is not merely a realis ation or change of investment, but an act done in what is truly the carrying on, or carrying out, of a business.1 In the present case, the Revenue has not brought any material on record which discloses definite information that the taxpayer had made the said investment in furtherance of its business or in connection therewith.
+
+[24] Given this scenario, the relationship be tween the taxpayer and its subsidiary may be held to be contractual, and governed by articles of association.2 So viewed, the facts of this case do not meet the test mentioned earlier, and thus, the taxpayer’s gain from its investment cannot be treated as business income in terms of section 18(1)(d). 8.
+
+[25] It goes wi thout saying that according to s ection 122(5) of the Income Tax Ordinance, 2001 , two conditions have to be complied with before a Taxation Officer acquires jurisdiction to issue notice under s ection 122(9) in respect of an 1 Californian Copper Syndicate (Limited and Reduced) v. Harris (Surveyor of Taxes) [5 TC 159 ]. 2 United Liner Agencies of Pakistan (Pvt.) Ltd.
+
+[26] Karachi v. Miss Mahenaee Agha [2003 SCMR 132] . Civil Appeal No.2434 of 20 16 6 assessment beyond the period of five years from the end of the relevant financial year. These two conditions are: firstly, that the Taxation Officer must have obtained definite information from the audit or otherwise; and second ly, that on that basis he must also be satisfied tha t income chargeable to tax had escaped assessment or total income has been undervalued, or assessed at too low a rate, or has been the subject of excessive relief or refund or any amount under a head of i ncome has been misclassified.
+
+[27] It is apposite to state here that whenever jurisdiction is given by a statute and such jurisdiction is only given upon certain specified terms contained therein, it is a universal principle that those terms should be complied with, in order to create and raise the jurisdiction, and if they are not complied with, the jurisdiction does not arise.3 In light of this principle, it is emphasized that above -stated two c onditions must coexist for the T axation Officer to assume jurisdic tion.
+
+[28] The absence of any of these will act as a bar to initiate proceedings to amend an original assessment order. 9. It is also important to mention here that an action under section 122 cannot be justified merely on the ground that the opinion of the Taxation Officer regarding charge ability of income is different from the one under which it was originally assessed in the deemed order under section 120(1) of the Income Tax Ordinance, 2001 .4 This is so because otherwise the taxpayer might become the victim of the freaks of a Taxation Officer ’s opinion from time to time.
+
+[29] In other words, we may say that there is no jurisdiction on the part of the Taxation Officer to start upon a venture of amending the original assessment order in a haphazard fashion , on mere suspicion in the hope of unearthing an escapement of tax. So, to protect the taxpayer from the sword of Revenue hanging over its head, the law has provided a safeguard in the shape of section 122(5) for setting in moti on the machinery of making amendments to the original assessment order. 3 Nusserwanjee Pestonjee and others v.
+
+[30] Meer Mrioodeen Khan Wullud Meer Sudroodeen Khan Bahadoor [1885) UK PC 15] . 4 Dewan Khalid Textile Mills Ltd. V. Commissioner of Income Tax (Legal Division), Large Taxpayers Unit, Karachi [2019 PTD 291 ]. Civil Appeal No.2434 of 20 16 7 10. In the wake of the above, when we examine the case at hand, we find that the two conditions of section 122(5) were not adhered to while assuming jurisdiction to amend the origina l assessment order.
+
+[31] The show cause notice, contents of which have been reproduced herein above, and the order amending the original assessment speaks elaborately that the Taxation Officer had not acquired any definite information subsequent to the original assessment order. On the contrary, the Taxation Officer based on the information provided in the return and documents attached to it by the taxpayer, proceeded to amend the assessment.
+
+[32] He had only made reanalysis of existing information and came to a conc lusion that was different from the one that was drawn in the original assessment order. We are, therefore, poised to conclude that the notice issued under section 122(9) was without jurisdiction, and the order passed in consequence of it was also void. 11.
+
+[33] In view of the above, we do not find any merit in the appeal. This appeal accordingly fails and is dismissed. Judge Judge Judge B-IV Islamabad, the 01.11.2023 “Approved for reporting” Sarfraz Ahmad & Agha M. Furqan, LC/ -
