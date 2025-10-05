@@ -109,8 +109,10 @@ def _is_legal_query(message: str) -> str:
         logger.info(f"Quick chitchat detection: {message[:30]}")
         return "CHITCHAT"
     
-    # For ambiguous cases, use Gemini to classify
+    # For ambiguous cases, use LLM to classify
     try:
+        from utils.call_llm import call_llm
+        
         classification_prompt = f"""You are a message classifier for a Pakistani legal assistant chatbot.
 
 USER MESSAGE: {message}
@@ -129,9 +131,7 @@ Respond with ONLY one word: "LEGAL", "CHITCHAT", or "IRRELEVANT"
 
 RESPONSE:"""
         
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content(classification_prompt)
-        result = response.text.strip().upper()
+        result = call_llm(classification_prompt).strip().upper()
         
         # Extract classification
         if "LEGAL" in result:
@@ -169,6 +169,8 @@ def _handle_chitchat(message: str, wa_id: str, name: str) -> str:
         # Get chat history for context
         chat_history = check_if_chat_exists(wa_id)
         
+        from utils.call_llm import call_llm
+        
         chitchat_prompt = f"""You are a friendly Pakistani legal assistant chatbot on WhatsApp named "LawYaar".
 
 USER: {name}
@@ -185,9 +187,7 @@ Guidelines:
 
 RESPONSE:"""
         
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content(chitchat_prompt)
-        chitchat_response = response.text.strip()
+        chitchat_response = call_llm(chitchat_prompt).strip()
         
         # Store in chat history
         new_history = chat_history if chat_history else []
@@ -386,7 +386,9 @@ def generate_response(message, wa_id, name):
             "apologize" in full_legal_response.lower() and "could not find" in full_legal_response.lower()
         )
         
-        # Create friendly summary using Gemini
+        # Create friendly summary using LLM
+        from utils.call_llm import call_llm
+        
         summary_prompt = f"""You are a friendly legal assistant on WhatsApp. You just completed a detailed legal research.
         
 YOUR TASK: Create a SHORT, FRIENDLY, EASY-TO-UNDERSTAND summary (2-3 paragraphs) that:
@@ -404,11 +406,9 @@ DETAILED LEGAL RESEARCH:
 Write a friendly summary in {'Urdu' if detected_language == 'ur' else 'English'}:"""
         
         try:
-            model = genai.GenerativeModel('gemini-2.5-flash')
-            summary_response = model.generate_content(summary_prompt)
-            friendly_summary = summary_response.text.strip()
+            friendly_summary = call_llm(summary_prompt).strip()
         except Exception as e:
-            logger.error(f"⚠️ Gemini API error generating summary: {e}")
+            logger.error(f"⚠️ LLM API error generating summary: {e}")
             # Fallback: Use first two paragraphs of legal response
             paragraphs = full_legal_response.split('\n\n')
             if len(paragraphs) >= 2:

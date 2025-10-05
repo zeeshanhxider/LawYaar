@@ -45,8 +45,8 @@ class LLMConfig:
     """Configuration for LLM settings"""
     
     # Default LLM provider and model
-    PROVIDER = "gemini"  # Options: "openai", "gemini"
-    MODEL = "gemini-2.5-flash"  # Default model (recommended)
+    PROVIDER = "openai"  # Options: "openai", "gemini"
+    MODEL = "gpt-5-mini"  # Default model (recommended)
     
     # Available models for each provider
     OPENAI_MODELS = [

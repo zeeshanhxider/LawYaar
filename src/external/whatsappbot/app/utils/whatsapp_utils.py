@@ -31,7 +31,7 @@ except ImportError as e:
 
 # Always import fallback service for error handling
 try:
-    from app.services.gemini_service import generate_response
+    from src.external.whatsappbot.app.services.llm_service import generate_response
 except ImportError:
     # If gemini_service not available, create a simple fallback
     def generate_response(message, wa_id, name):
