@@ -1,3 +1,17 @@
+"""
+Legal Text Chunking Module for Pakistan Supreme Court Judgments
+
+This module provides intelligent text chunking specifically designed for
+Pakistan Supreme Court judgments. It handles:
+- Numbered paragraphs format: [1], [2], [3], etc.
+- Metadata preservation (Case No, Judge, Date, etc.)
+- Context-aware overlapping between chunks
+- Multiple chunking strategies (preserve paragraphs, split large paragraphs)
+- Smart grouping of related legal content
+
+Optimized for RAG (Retrieval Augmented Generation) systems to maintain
+legal context and improve retrieval accuracy.
+"""
 import re
 from typing import List, Dict, Any, Optional
 import logging
@@ -11,7 +25,7 @@ logger = logging.getLogger(__name__)
 class LegalTextChunker:
     def __init__(self, chunk_size: int = None, overlap: int = None, config: ChunkingConfig = None):
         """
-        Initialize the legal text chunker with configuration
+        Initialize the legal text chunker with configuration for Pakistan Supreme Court judgments
         
         Args:
             chunk_size: Target size for each chunk (overrides config)
@@ -28,7 +42,7 @@ class LegalTextChunker:
     def _split_by_legal_paragraphs(self, text: str) -> List[str]:
         """
         Split text by numbered legal paragraphs [1], [2], etc.
-        This is the primary structure in Ontario Court decisions.
+        This is the primary structure in Pakistan Supreme Court judgments.
         
         Args:
             text: Input text to split
@@ -61,7 +75,8 @@ class LegalTextChunker:
     
     def _split_by_sections(self, text: str) -> List[str]:
         """
-        Split text by major sections (Roman numerals, headings)
+        Split text by major sections (headings, judge names, procedural markers)
+        Adapted for Pakistan Supreme Court judgment structure.
         
         Args:
             text: Input text to split
@@ -69,9 +84,10 @@ class LegalTextChunker:
         Returns:
             List of sections
         """
-        # Patterns for section headers
+        # Patterns for section headers in Pakistan Supreme Court judgments
         section_patterns = [
             r'\n[IVX]+\.\s+[A-Z][^\n]+',  # Roman numerals: I. Introduction, II. Facts
+            r'\nJudgment\s*\n',             # Judgment section marker
             r'\n[A-Z][a-z]+:(?:\n|\s)',     # Single word headers: Introduction:, Facts:
             r'\n[A-Z][A-Z\s]+:(?:\n|\s)',   # All caps headers: FACTUAL CONTEXT:
         ]
@@ -207,14 +223,14 @@ class LegalTextChunker:
     
     def create_chunks(self, text: str, metadata: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         """
-        Create chunks from legal text using multiple strategies
+        Create chunks from Pakistan Supreme Court legal text using multiple strategies
         
         Args:
-            text: Input text (content after metadata extraction)
-            metadata: Optional metadata to attach to each chunk
+            text: Input text (content after metadata extraction - excludes Case No, Title, etc.)
+            metadata: Optional metadata to attach to each chunk (e.g., case_no, judge, date)
             
         Returns:
-            List of chunk dictionaries
+            List of chunk dictionaries with text and metadata
         """
         if not text or len(text.strip()) == 0:
             return []
@@ -340,7 +356,7 @@ class LegalTextChunker:
 
 def create_chunker(chunk_size: int = None, overlap: int = None, config: ChunkingConfig = None) -> LegalTextChunker:
     """
-    Factory function to create a text chunker with configuration
+    Factory function to create a text chunker optimized for Pakistan Supreme Court judgments
     
     Args:
         chunk_size: Target size for each chunk (overrides config)
@@ -348,36 +364,40 @@ def create_chunker(chunk_size: int = None, overlap: int = None, config: Chunking
         config: ChunkingConfig object (if None, uses default from settings)
         
     Returns:
-        LegalTextChunker instance
+        LegalTextChunker instance configured for Pakistan legal text
     """
     return LegalTextChunker(chunk_size, overlap, config)
 
 if __name__ == "__main__":
-    # Test the chunker
+    # Test the chunker with Pakistan Supreme Court judgment format
     chunker = LegalTextChunker(chunk_size=500, overlap=100)
     
-    # Sample legal text
+    # Sample legal text from Pakistan Supreme Court
     sample_text = """
-    ONTARIO COURT OF JUSTICE
+    [1] Order dated 08.12.2022 passed by the High Court of Sindh, Karachi in Constitution Petition No. D- 
+    Mst. Tahira Begum and others …Petitioners Versus Federation of Pakistan through its Secretary Ministry 
+    of Religious Affairs & Interfaith Harmony, Government of Pakistan & other …Respondents For the Petitioner.
     
-    [1] This is the first paragraph of the legal decision.
+    [2] Mr. Iftikhar Javed Qazi, ASC. Mr. Muhammad Iqbal Chaudhry, AOR. Date of Hearing : 02.06.2025 
+    Judgment Muhammad Ali Mazhar, J. – This Civil Petition for leave to appeal is directed against the 
+    Order dated 08.12.2022 passed by the High Court of Sindh, Karachi.
     
-    [2] This is the second paragraph discussing the facts of the case.
-    The defendant was charged under section 123 of the Criminal Code.
+    [3] The compendium of facts unveil that the petitioners No.1 & 2 are running a business under 
+    the name and style of M/s. Yamin & Company.
     
-    [3] The court must consider the following factors:
-    (a) The nature of the offense
-    (b) The circumstances of the defendant
-    (c) The public interest
-    
-    [4] In conclusion, the court finds that the evidence supports the conviction.
+    [4] In conclusion, this petition is converted into an appeal and allowed.
     """
     
-    chunks = chunker.create_chunks(sample_text, {'case_name': 'Test Case', 'year': '2024'})
+    chunks = chunker.create_chunks(sample_text, {
+        'case_no': 'C.P.L.A.3-K/2023', 
+        'judge': 'Mr. Justice Muhammad Ali Mazhar',
+        'year': '2025'
+    })
     
     print(f"Created {len(chunks)} chunks:")
     for i, chunk in enumerate(chunks):
         print(f"\nChunk {i + 1}:")
         print(f"Strategy: {chunk['metadata']['chunk_strategy']}")
         print(f"Size: {chunk['metadata']['chunk_size']}")
-        print(f"Text: {chunk['text'][:100]}...")
+        print(f"Paragraph Range: {chunk['metadata'].get('paragraph_range', 'N/A')}")
+        print(f"Text preview: {chunk['text'][:100]}...")
