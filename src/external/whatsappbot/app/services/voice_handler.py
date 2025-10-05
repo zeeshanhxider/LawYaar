@@ -396,13 +396,14 @@ class VoiceMessageHandler:
             logger.error(f"❌ Unexpected error during speech synthesis: {e}")
             return None
     
-    def send_audio_reply(self, to, audio_path):
+    def send_audio_reply(self, to, audio_path, context_message_id=None):
         """
         Send audio message via WhatsApp by uploading the audio file.
         
         Args:
             to (str): Recipient WhatsApp ID (phone number with country code)
             audio_path (str): Local path to the audio file
+            context_message_id (str, optional): Message ID to reply to (creates threaded reply)
             
         Returns:
             dict: Response from WhatsApp API, or None if send failed
@@ -462,6 +463,13 @@ class VoiceMessageHandler:
                     "id": media_id
                 }
             }
+            
+            # Add context for reply threading if message_id provided
+            if context_message_id:
+                message_data["context"] = {
+                    "message_id": context_message_id
+                }
+                logger.info(f"💬 Replying to message: {context_message_id}")
             
             headers["Content-Type"] = "application/json"
             
@@ -551,6 +559,6 @@ def synthesize_speech(text):
     return get_voice_handler().synthesize_speech(text)
 
 
-def send_audio_reply(to, audio_path):
+def send_audio_reply(to, audio_path, context_message_id=None):
     """Send audio message via WhatsApp. See VoiceMessageHandler.send_audio_reply()"""
-    return get_voice_handler().send_audio_reply(to, audio_path)
+    return get_voice_handler().send_audio_reply(to, audio_path, context_message_id)
