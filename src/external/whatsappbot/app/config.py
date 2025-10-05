@@ -3,9 +3,12 @@ import os
 from dotenv import load_dotenv
 import logging
 
+# Load .env from project root (go up 4 levels: app -> whatsappbot -> external -> src -> root)
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+load_dotenv(os.path.join(project_root, '.env'))
+
 
 def load_configurations(app):
-    load_dotenv()
     app.config["ACCESS_TOKEN"] = os.getenv("ACCESS_TOKEN")
     app.config["YOUR_PHONE_NUMBER"] = os.getenv("YOUR_PHONE_NUMBER")
     app.config["APP_ID"] = os.getenv("APP_ID")

@@ -150,9 +150,17 @@ class LawYaarWhatsAppService:
             # Detect language and create instruction for same-language response
             detected_language, language_instruction = self._detect_language_and_create_instruction(message_body)
             
+            # IMPORTANT: If query is in Urdu, translate to English for vector search
+            # (since our documents and embeddings are in English)
+            search_query = message_body
+            if detected_language == 'ur':
+                logger.info(f"Detected Urdu query: {message_body[:100]}")
+                search_query = await self._translate_urdu_to_english(message_body)
+                logger.info(f"Using English translation for search: {search_query[:100]}")
+            
             # Create shared state for LawYaar research flow
             shared = {
-                "user_query": message_body,
+                "user_query": search_query,  # Use translated query for vector search
                 "language_instruction": language_instruction,  # Add language instruction
                 "vector_db": self.vector_db,
                 "retrieved_chunks": [],
@@ -241,6 +249,46 @@ class LawYaarWhatsAppService:
         else:
             # Default to English
             return ('en', "Respond in clear, professional English.")
+    
+    async def _translate_urdu_to_english(self, urdu_text: str) -> str:
+        """
+        Translate Urdu query to English for vector search.
+        
+        Args:
+            urdu_text: Query in Urdu
+            
+        Returns:
+            str: Translated query in English
+        """
+        try:
+            import google.generativeai as genai
+            import os
+            
+            gemini_api_key = os.getenv('GEMINI_API_KEY')
+            if not gemini_api_key:
+                logger.error("GEMINI_API_KEY not found - cannot translate query")
+                return urdu_text  # Return original if can't translate
+            
+            genai.configure(api_key=gemini_api_key)
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            
+            translation_prompt = f"""Translate this Urdu legal query to English. Keep it concise and maintain the legal intent.
+
+URDU QUERY:
+{urdu_text}
+
+ENGLISH TRANSLATION (only the translation, nothing else):"""
+            
+            logger.info("Translating Urdu query to English for vector search...")
+            response = model.generate_content(translation_prompt)
+            english_text = response.text.strip()
+            logger.info(f"Translated query: {english_text}")
+            
+            return english_text
+            
+        except Exception as e:
+            logger.error(f"Translation error: {e}")
+            return urdu_text  # Fallback to original
     
     async def _translate_to_urdu(self, english_text: str) -> str:
         """
