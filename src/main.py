@@ -5,8 +5,9 @@ from dotenv import load_dotenv
 from flow import create_offline_indexing_flow, create_online_research_flow
 from utils.progress import get_progress_tracker
 
-# Load environment variables from .env file
-load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))
+# Load environment variables from .env file in project root
+project_root = os.path.dirname(os.path.dirname(__file__))
+load_dotenv(os.path.join(project_root, '.env'))
 
 # Setup logging
 logging.basicConfig(

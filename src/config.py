@@ -37,7 +37,7 @@ class VectorDBConfig:
     
     COLLECTION_NAME = "legal_cases"
     EMBEDDING_MODEL = "all-mpnet-base-v2"  # Better sentence transformer model for legal text
-    SIMILARITY_THRESHOLD = 0.3  # Empirically tested threshold for legal document retrieval (typical scores: 0.1-0.4)
+    SIMILARITY_THRESHOLD = 0.01  # Very low threshold to capture more results (was 0.05, actual scores: 0.05-0.23)
     MAX_RESULTS = 100  # Increased for better coverage of legal concepts
 
 
@@ -77,9 +77,15 @@ class LLMConfig:
 class SystemConfig:
     """General system configuration"""
     
-    # Directories
-    DOCUMENTS_DIR = "src/assets/data"
-    CHROMA_DB_PATH = "chroma_db"
+    # Directories (use absolute paths to avoid issues when running from different directories)
+    import os
+    from pathlib import Path
+    
+    # Get project root (parent of src directory)
+    _PROJECT_ROOT = Path(__file__).parent.parent
+    
+    DOCUMENTS_DIR = str(_PROJECT_ROOT / "src" / "assets" / "data")
+    CHROMA_DB_PATH = str(_PROJECT_ROOT / "chroma_db")  # Use project root chroma_db, not src/chroma_db
     
     # Logging
     LOG_LEVEL = "INFO"
