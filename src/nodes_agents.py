@@ -404,7 +404,7 @@ class AggregationAgentNode(Node):
         # Add cases referenced section
         sections_text += f"\n## Cases Referenced\n[List ALL {num_cases} cases with brief relevance to the query]\n"
         
-        return f"""You are a senior legal research assistant providing a focused response to a specific legal query. Your response will be displayed in a web interface that supports markdown formatting.
+        return f"""You are a senior legal research assistant specializing in Supreme Court of Pakistan case law. You are providing a focused response to a specific legal query. Your response will be displayed in a web interface that supports markdown formatting.
 
 🌐 LANGUAGE REQUIREMENT: {language_instruction}
 
@@ -412,10 +412,10 @@ USER QUERY: {user_query}
 
 QUERY ANALYSIS: {reasoning}
 
-RELEVANT LEGAL CASES AND SUMMARIES ({num_cases} cases found):
+RELEVANT SUPREME COURT OF PAKISTAN CASES AND SUMMARIES ({num_cases} cases found):
 {all_summaries}
 
-AVAILABLE CASE CITATIONS:
+AVAILABLE CASE CITATIONS (Supreme Court of Pakistan):
 {available_citations}
 
 CRITICAL INSTRUCTIONS - SYNTHESIS REQUIREMENT:
@@ -427,10 +427,10 @@ CRITICAL INSTRUCTIONS - SYNTHESIS REQUIREMENT:
 FORMATTING INSTRUCTIONS:
 1. Answer ONLY what the user asked - do not provide unnecessary background or comprehensive case summaries
 2. Be concise and directly responsive to the query
-3. When citing cases, use ONLY the case citation format (e.g., "R. v. Smith, 2025 ONCJ 123") - do NOT include URLs
+3. When citing cases, use the Supreme Court of Pakistan case number format (e.g., "C.P.L.A.379-L/2021" or "Crl.A.314-L/2020") - do NOT include URLs
 4. Do NOT use asterisks (*) around case names - write them as plain text
-5. The frontend will automatically make case citations clickable
-6. Ground ALL statements in the provided case law
+5. The frontend will automatically make case citations clickable and link to Supreme Court of Pakistan PDFs
+6. Ground ALL statements in the provided Supreme Court of Pakistan case law
 7. If the cases don't address the query, clearly state that
 
 FOCUS AREAS: {', '.join(focus_areas)}
@@ -492,20 +492,33 @@ RESPONSE:"""
         
         for doc_name, summary in document_summaries.items():
             metadata = document_metadata.get(doc_name, {})
-            citation = metadata.get('citation', doc_name.replace('.txt', '').replace(' (CanLII)', ''))
-            link = metadata.get('link', '')
             
-            # Create hyperlink if available
-            if link:
-                hyperlink = f"[{citation}]({link})"
+            # For Supreme Court of Pakistan cases
+            # Citation is the case number (e.g., C.P.L.A.379-L/2021)
+            citation = metadata.get('case_no', doc_name.replace('.txt', ''))
+            
+            # Use case_title if available for better display
+            case_title = metadata.get('case_title', '')
+            
+            # Get PDF URL from Supreme Court of Pakistan website
+            pdf_url = metadata.get('pdf_url', '')
+            
+            # Create hyperlink if PDF URL is available
+            if pdf_url and pdf_url.lower() != 'n/a':
+                # Display format: "Case No: Case Title"
+                display_text = f"{citation}: {case_title}" if case_title else citation
+                hyperlink = f"[{display_text}]({pdf_url})"
                 citation_map[citation] = hyperlink
             else:
-                citation_map[citation] = citation
+                # No link available, just show citation
+                display_text = f"{citation}: {case_title}" if case_title else citation
+                citation_map[citation] = display_text
             
             case_info_list.append({
                 'doc_name': doc_name,
                 'citation': citation,
-                'link': link,
+                'case_title': case_title,
+                'link': pdf_url,
                 'summary': summary,
                 'hyperlink': citation_map[citation]
             })

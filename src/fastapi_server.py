@@ -275,48 +275,70 @@ async def broadcast_progress(session_id: str, progress_data: Dict):
             websocket_connections[session_id].remove(ws)
 
 def extract_citations_from_response(response: str, document_summaries: Dict) -> List[CitedDocument]:
-    """Extract citations from the research response"""
+    """Extract citations from the research response for Supreme Court of Pakistan cases"""
     citations = []
     
     for i, (doc_name, summary) in enumerate(document_summaries.items()):
-        # Extract citation from filename
-        citation = doc_name.replace('.txt', '').replace(' (CanLII)', '')
+        # Extract citation from filename (case number)
+        citation = doc_name.replace('.txt', '')
         
-        # Try to get the actual  URL from the file metadata
-        canli_url = None
+        # Try to extract metadata from the file
+        case_title = citation
+        court = "Supreme Court of Pakistan"
+        date = "2025"
+        pdf_url = None
+        
         try:
-            # Read the file to get the actual link
-            file_path = f"assets/data/{doc_name}"
+            # Read the file to get actual metadata
+            config = get_system_config()
+            file_path = os.path.join(config.DOCUMENTS_DIR, doc_name)
+            
             if os.path.exists(file_path):
                 with open(file_path, 'r', encoding='utf-8') as f:
-                    first_lines = f.read(500)  # Read first 500 chars
-                    # Look for the Link: line
-                    for line in first_lines.split('\n'):
-                        if line.startswith('Link: <') and line.endswith('>'):
-                            canli_url = line.replace('Link: <', '').replace('>', '')
-                            break
+                    content = f.read(2000)  # Read first 2000 chars to get metadata
+                    
+                    # Extract metadata from the header section
+                    for line in content.split('\n'):
+                        line_stripped = line.strip()
+                        
+                        # Extract case title
+                        if 'Case Title:' in line_stripped or 'case_title:' in line_stripped.lower():
+                            case_title = line_stripped.split(':', 1)[1].strip()
+                        
+                        # Extract judgment date
+                        elif 'Judgment Date:' in line_stripped or 'judgment_date:' in line_stripped.lower():
+                            date = line_stripped.split(':', 1)[1].strip()
+                        
+                        # Extract PDF URL
+                        elif 'PDF URL:' in line_stripped or 'pdf_url:' in line_stripped.lower():
+                            pdf_url = line_stripped.split(':', 1)[1].strip()
+                            if pdf_url.lower() == 'n/a':
+                                pdf_url = None
+                        
+                        # Extract court name (though it should always be Supreme Court of Pakistan)
+                        elif 'Court:' in line_stripped or line_stripped == 'SUPREME COURT OF PAKISTAN':
+                            if ':' in line_stripped:
+                                court = line_stripped.split(':', 1)[1].strip()
+                            else:
+                                court = "Supreme Court of Pakistan"
+        
         except Exception as e:
-            logger.error(f"Error reading file {doc_name}: {e}")
+            logger.error(f"Error reading metadata from file {doc_name}: {e}")
         
-        # Fallback to generated URL if not found
-        if not canli_url and "CanLII" in doc_name:
-            case_ref = citation.replace(' ', '-').replace('.', '').replace(',', '')
-            canli_url = f"https://www.canlii.org/en/on/oncj/doc/{case_ref.lower()}/view.html"
-        
-        # Create a simplified citation entry
+        # Create citation entry with extracted metadata
         citations.append(CitedDocument(
             id=str(i + 1),
-            title=citation,
+            title=case_title,
             citation=citation,
-            court="Ontario Court of Justice",  # Default, could be extracted from content
-            date="2025",  # Could be extracted from filename or content
+            court=court,
+            date=date,
             relevanceScore=0.85,  # Could be calculated from similarity scores
             keyPassages=[
                 # Extract first few sentences from summary as key passages
                 summary.split('.')[0] + '.' if '.' in summary else summary[:200] + '...'
             ],
-            url=canli_url,
-            link=canli_url  # Added for clickable links
+            url=pdf_url,
+            link=pdf_url
         ))
     
     return citations
@@ -534,8 +556,8 @@ async def start_research(query: ResearchQuery, background_tasks: BackgroundTasks
                             # Get the actual status from the progress tracker
                             actual_status = document_statuses.get(doc_name, "pending")
                             
-                            # Clean up the document name for display
-                            display_name = doc_name.replace('.txt', '').replace(' (CanLII)', '')
+                            # Clean up the document name for display (remove file extension)
+                            display_name = doc_name.replace('.txt', '')
                             
                             # Get actual chunk data from progress tracker
                             chunks = progress_data.get('document_chunks', {}).get(doc_name, 0)
