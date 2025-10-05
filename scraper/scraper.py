@@ -68,7 +68,7 @@ class SupremeCourtScraper:
         
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service, options=chrome_options)
-        self.driver.implicitly_wait(2)  # Reduced from 10 to 2 seconds
+        self.driver.implicitly_wait(1)  # Reduced for better performance
     
     def _sanitize_filename(self, filename: str) -> str:
         """
@@ -91,7 +91,7 @@ class SupremeCourtScraper:
         """Navigate to the Supreme Court judgment search page."""
         print(f"Navigating to {self.url}")
         self.driver.get(self.url)
-        time.sleep(3)  # Wait for page to load
+        time.sleep(2)  # Reduced wait time
     
     def click_search_button(self):
         """
@@ -120,7 +120,7 @@ class SupremeCourtScraper:
                     print(f"Found search button with selector: {selector}")
                     button.click()
                     print("Clicked Search Result button")
-                    time.sleep(5)  # Wait for results to load
+                    time.sleep(3)  # Reduced wait time
                     return True
                 except (TimeoutException, NoSuchElementException):
                     continue
@@ -146,7 +146,7 @@ class SupremeCourtScraper:
         
         try:
             # Wait for results to load
-            time.sleep(2)
+            time.sleep(1)  # Reduced wait time
             
             # Find tbody rows (the actual data rows)
             result_selectors = [
@@ -215,7 +215,7 @@ class SupremeCourtScraper:
                     
                     # Scroll to button and click
                     self.driver.execute_script("arguments[0].scrollIntoView(true);", next_button)
-                    time.sleep(1)
+                    time.sleep(0.5)  # Reduced wait time
                     
                     # Try regular click first
                     try:
@@ -225,7 +225,7 @@ class SupremeCourtScraper:
                         self.driver.execute_script("arguments[0].click();", next_button)
                     
                     print("  ✓ Clicked Next button")
-                    time.sleep(3)  # Wait for next page to load
+                    time.sleep(2)  # Reduced wait for next page to load
                     return True
                     
                 except NoSuchElementException:
@@ -302,9 +302,26 @@ class SupremeCourtScraper:
                     return None
                 
                 # Extract data from specific columns
-                record['sr_no'] = cells[0].text.strip()
+                sr_no_text = cells[0].text.strip()
+                case_no_text = cells[2].text.strip()
+                
+                # Filter out garbage rows (taglines, invalid entries)
+                # Valid rows should have numeric Sr_No and proper Case_No format
+                if not sr_no_text or not sr_no_text.replace(',', '').isdigit():
+                    # Skip rows without valid serial numbers (like "Tagline" rows)
+                    return None
+                
+                if not case_no_text or case_no_text == 'N/A':
+                    # Skip rows without case numbers
+                    return None
+                
+                # Skip if first column contains "tagline" (case insensitive)
+                if 'tagline' in cells[0].text.lower() or 'tagline' in cells[1].text.lower():
+                    return None
+                
+                record['sr_no'] = sr_no_text
                 record['case_subject'] = cells[1].text.strip() if cells[1].text.strip() else "N/A"
-                record['case_no'] = cells[2].text.strip() if cells[2].text.strip() else "N/A"
+                record['case_no'] = case_no_text
                 record['case_title'] = cells[3].text.strip() if cells[3].text.strip() else f"Case_{index}"
                 record['author_judge'] = cells[4].text.strip() if cells[4].text.strip() else "N/A"
                 record['upload_date'] = cells[5].text.strip() if cells[5].text.strip() else "N/A"
@@ -456,7 +473,7 @@ class SupremeCourtScraper:
                 # Automatic click mode
                 if not self.click_search_button():
                     print("Failed to click search button. Attempting to extract records anyway...")
-                time.sleep(10)  # Wait for results to load
+                time.sleep(5)  # Reduced wait for results to load
             
             # Get initial page info
             page_info = self.get_current_page_info()
@@ -552,7 +569,7 @@ class SupremeCourtScraper:
                     failed += 1
                 
                 # Add a small delay to avoid overwhelming the server
-                time.sleep(0.5)
+                time.sleep(0.3)  # Reduced delay between downloads
             
             print(f"\n{'='*60}")
             print(f"Scraping completed!")

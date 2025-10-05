@@ -78,7 +78,7 @@ class SystemConfig:
     """General system configuration"""
     
     # Directories
-    DOCUMENTS_DIR = "assets/data"
+    DOCUMENTS_DIR = "src/assets/data"
     CHROMA_DB_PATH = "chroma_db"
     
     # Logging

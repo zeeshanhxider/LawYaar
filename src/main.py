@@ -19,24 +19,34 @@ def run_offline_indexing():
     """
     Run the offline indexing process to create vector database from legal documents
     """
-    print("Starting offline document indexing...")
+    print("\n" + "="*60)
+    print("VECTOR DATABASE INITIALIZATION")
+    print("="*60)
     
     # Create shared store for offline processing
     shared = {
-        "documents_directory": "assets/data",
+        "documents_directory": "src/assets/data",
         "processed_files": [],
         "total_files_processed": 0,
         "vector_db": None,
-        "total_chunks_indexed": 0
+        "total_chunks_indexed": 0,
+        "indexing_skipped": False
     }
     
     # Create and run offline flow
     offline_flow = create_offline_indexing_flow()
     offline_flow.run(shared)
     
-    print(f"Indexing completed!")
-    print(f"Files processed: {shared['total_files_processed']}")
-    print(f"Chunks indexed: {shared['total_chunks_indexed']}")
+    if shared.get("indexing_skipped", False):
+        print("\n✓ Using cached vector database (no document changes detected)")
+        print(f"  Total chunks available: {shared['total_chunks_indexed']}")
+    else:
+        print("\n✓ Indexing completed!")
+        print(f"  Files processed: {shared['total_files_processed']}")
+        print(f"  Chunks indexed: {shared['total_chunks_indexed']}")
+        print(f"  Cache updated for future runs")
+    
+    print("="*60)
     
     return shared
 
@@ -115,10 +125,10 @@ async def main():
     print("=" * 50)
     
     # Check if we have documents
-    documents_dir = "assets/data"
+    documents_dir = "src/assets/data"
     if not os.path.exists(documents_dir):
         print(f"Documents directory not found: {documents_dir}")
-        print("Please ensure you have legal case files in the assets/data directory")
+        print("Please ensure you have legal case files in the src/assets/data directory")
         return
     
     # Count available documents

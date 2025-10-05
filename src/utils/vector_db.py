@@ -123,6 +123,28 @@ class VectorDatabase:
             'total_documents': count,
             'collection_name': self.collection.name
         }
+    
+    def collection_exists(self, collection_name: str = "legal_cases") -> bool:
+        """
+        Check if a collection exists and has data
+        
+        Args:
+            collection_name: Name of the collection to check
+            
+        Returns:
+            True if collection exists and has documents, False otherwise
+        """
+        try:
+            collection = self.client.get_collection(
+                name=collection_name,
+                embedding_function=self.embedding_function
+            )
+            count = collection.count()
+            logger.info(f"Collection '{collection_name}' exists with {count} documents")
+            return count > 0
+        except Exception as e:
+            logger.info(f"Collection '{collection_name}' does not exist or is empty: {e}")
+            return False
 
 def create_vector_db() -> VectorDatabase:
     """

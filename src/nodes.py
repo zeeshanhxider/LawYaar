@@ -5,6 +5,7 @@ from utils.embedding import get_embedding_service
 from utils.file_processor import create_file_processor
 from utils.chunking import create_chunker
 from utils.progress import get_progress_tracker
+from utils.cache_manager import create_cache_manager
 from config import get_vector_db_config, get_system_config
 import asyncio
 import logging
@@ -52,6 +53,31 @@ class DocumentIngestionNode(BatchNode):
 class VectorIndexCreationNode(BatchNode):
     """Create vector database index from processed documents"""
     def prep(self, shared):
+        # Check if we can use cached vector DB
+        config = get_system_config()
+        vdb_config = get_vector_db_config()
+        cache_manager = create_cache_manager()
+        vector_db = create_vector_db()
+        
+        # Check if collection exists and cache is valid
+        if vector_db.collection_exists(vdb_config.COLLECTION_NAME):
+            has_changes, reason = cache_manager.has_changes(config.DOCUMENTS_DIR)
+            
+            if not has_changes:
+                logger.info("✓ Using cached vector database - no document changes detected")
+                shared["vector_db"] = vector_db
+                vector_db.create_or_get_collection(vdb_config.COLLECTION_NAME)
+                stats = vector_db.get_collection_stats()
+                shared["total_chunks_indexed"] = stats['total_documents']
+                shared["indexing_skipped"] = True
+                return []  # Skip processing
+            else:
+                logger.info(f"⟳ Re-indexing required: {reason}")
+        else:
+            logger.info("⟳ No existing index found - creating new vector database")
+        
+        shared["indexing_skipped"] = False
+        
         processed_files = shared.get("processed_files", [])
         if not processed_files:
             logger.error("No processed files found for indexing")
@@ -82,6 +108,11 @@ class VectorIndexCreationNode(BatchNode):
         return chunks
     
     def post(self, shared, prep_res, exec_res_list):
+        # If indexing was skipped (using cache), return early
+        if shared.get("indexing_skipped", False):
+            logger.info("Skipped indexing - using cached vector database")
+            return "default"
+        
         all_chunks = []
         for chunk_list in exec_res_list:
             all_chunks.extend(chunk_list)
@@ -111,7 +142,12 @@ class VectorIndexCreationNode(BatchNode):
         shared["vector_db"] = vector_db
         shared["total_chunks_indexed"] = total_chunks
         
-        logger.info(f"Successfully indexed all {total_chunks} chunks in vector database")
+        # Update cache after successful indexing
+        config = get_system_config()
+        cache_manager = create_cache_manager()
+        cache_manager.update_cache(config.DOCUMENTS_DIR)
+        logger.info(f"✓ Successfully indexed all {total_chunks} chunks and updated cache")
+        
         return "default"
 
 class InitialRetrievalNode(Node):

@@ -12,7 +12,26 @@ class LegalFileProcessor:
     
     def extract_metadata_from_text(self, text: str) -> Tuple[Dict[str, str], str]:
         """
-        Extract metadata from the beginning of a legal case file
+        Extract metadata from the beginning of a Supreme Court of Pakistan legal case file
+        
+        Expected format:
+        ======================================================================
+        SUPREME COURT OF PAKISTAN JUDGMENT
+        ======================================================================
+        
+        Case No: C.P.L.A.379-L/2021
+        Case Title: Ch. Bashir Ahmad v. Qamar Aftab, etc
+        Subject: Rent/Rent/Ejectment
+        Judge: Mr. Justice Muhammad Shafi Siddiqui
+        Judgment Date: 18-09-2025
+        Upload Date: 04-10-2025
+        Citations: N/A
+        SC Citations: N/A
+        PDF URL: https://www.supremecourt.gov.pk/downloads_judgements/...
+        
+        ======================================================================
+        
+        [Main judgment text starts here...]
         
         Args:
             text: Full text of the legal case file
@@ -23,61 +42,81 @@ class LegalFileProcessor:
         lines = text.split('\n')
         metadata = {}
         content_start_idx = 0
+        in_metadata_section = False
+        separator_count = 0
         
         # Look for metadata patterns at the beginning
         for i, line in enumerate(lines):
-            line = line.strip()
+            line_stripped = line.strip()
             
-            # Stop if we hit an empty line followed by substantial content
-            if not line and i > 5:  # Allow some empty lines in metadata section
-                # Check if next non-empty line looks like content
-                for j in range(i + 1, min(i + 5, len(lines))):
-                    if lines[j].strip() and not ':' in lines[j][:50]:
-                        content_start_idx = j
-                        break
-                if content_start_idx > 0:
+            # Detect separator lines (===)
+            if line_stripped.startswith('=') and len(line_stripped) > 30:
+                separator_count += 1
+                # After second separator, metadata section ends
+                if separator_count >= 2:
+                    in_metadata_section = False
+                    content_start_idx = i + 1
                     break
+                else:
+                    in_metadata_section = True
+                continue
             
-            # Extract key-value pairs
-            if ':' in line and len(line.split(':', 1)) == 2:
-                key, value = line.split(':', 1)
-                key = key.strip()
-                value = value.strip()
-                
-                # Clean up common metadata fields
-                if key.lower() in ['link', 'date', 'file number', 'citation', 'court', 'region', 'client', 'judge']:
-                    # Strip angle brackets from link field
-                    if key.lower() == 'link' and value.startswith('<') and value.endswith('>'):
-                        value = value[1:-1]
-                    metadata[key.lower().replace(' ', '_')] = value
+            # Skip header lines
+            if 'SUPREME COURT' in line_stripped.upper() or 'PAKISTAN' in line_stripped.upper():
+                continue
             
-            # Stop metadata extraction if we see patterns indicating content start
-            elif line.startswith('WARNING') or line.startswith('ONTARIO COURT') or 'CITATION:' in line:
-                content_start_idx = i
-                break
+            # Skip empty lines
+            if not line_stripped:
+                continue
+            
+            # Extract key-value pairs in metadata section
+            if in_metadata_section and ':' in line_stripped:
+                parts = line_stripped.split(':', 1)
+                if len(parts) == 2:
+                    key, value = parts
+                    key = key.strip()
+                    value = value.strip()
+                    
+                    # Map to standardized field names (matching CSV format)
+                    key_lower = key.lower()
+                    
+                    if 'case no' in key_lower or 'case_no' in key_lower:
+                        metadata['case_no'] = value
+                    elif 'case title' in key_lower or 'case_title' in key_lower:
+                        metadata['case_title'] = value
+                    elif 'subject' in key_lower:
+                        metadata['case_subject'] = value
+                    elif 'judge' in key_lower:
+                        metadata['author_judge'] = value
+                    elif 'judgment date' in key_lower or 'judgment_date' in key_lower:
+                        metadata['judgment_date'] = value
+                    elif 'upload date' in key_lower or 'upload_date' in key_lower:
+                        metadata['upload_date'] = value
+                    elif 'sc citation' in key_lower or 'sc_citation' in key_lower:
+                        metadata['sc_citations'] = value if value.lower() != 'n/a' else ''
+                    elif 'citation' in key_lower:
+                        metadata['citations'] = value if value.lower() != 'n/a' else ''
+                    elif 'pdf url' in key_lower or 'pdf_url' in key_lower:
+                        metadata['pdf_url'] = value
         
-        # Extract the main content (everything after metadata)
+        # Extract the main content (everything after second separator)
         if content_start_idx > 0:
-            content = '\n'.join(lines[content_start_idx:])
+            content = '\n'.join(lines[content_start_idx:]).strip()
         else:
-            # If no clear metadata section found, use the whole text
+            # Fallback: if no separators found, look for first substantial paragraph
             content = text
         
         # Add derived metadata
-        if 'citation' in metadata:
-            # Extract case name from citation (e.g., "R. v. Smith, 2025 ONCJ 123")
-            citation = metadata['citation']
-            case_name_match = re.match(r'^([^,]+)', citation)
-            if case_name_match:
-                metadata['case_name'] = case_name_match.group(1).strip()
-        
-        # Extract year from date or citation
-        for field in ['date', 'citation']:
+        # Extract year from judgment_date or upload_date
+        for field in ['judgment_date', 'upload_date']:
             if field in metadata:
                 year_match = re.search(r'20\d{2}', metadata[field])
                 if year_match:
                     metadata['year'] = year_match.group()
                     break
+        
+        # Set court name (always Supreme Court of Pakistan for this system)
+        metadata['court'] = 'Supreme Court of Pakistan'
         
         logger.info(f"Extracted metadata with {len(metadata)} fields")
         return metadata, content
@@ -152,7 +191,7 @@ class LegalFileProcessor:
     
     def validate_legal_case_format(self, file_info: Dict[str, any]) -> bool:
         """
-        Validate if a file appears to be a properly formatted legal case
+        Validate if a file appears to be a properly formatted Supreme Court of Pakistan legal case
         
         Args:
             file_info: Processed file information
@@ -163,21 +202,32 @@ class LegalFileProcessor:
         metadata = file_info.get('metadata', {})
         content = file_info.get('content', '')
         
-        # Check for essential metadata fields
-        required_fields = ['citation', 'court', 'date']
+        # Check for essential metadata fields for Supreme Court of Pakistan
+        required_fields = ['case_no', 'court']
         has_required_fields = all(field in metadata for field in required_fields)
+        
+        # At least one date field should be present
+        has_date = 'judgment_date' in metadata or 'upload_date' in metadata
         
         # Check for substantial content
         has_content = len(content.strip()) > 100
         
-        # Check for legal case indicators in content
-        legal_indicators = ['court', 'judgment', 'justice', 'appellant', 'respondent', 'section']
+        # Check for Pakistani legal case indicators in content
+        legal_indicators = [
+            'court', 'judgment', 'justice', 'appellant', 'respondent', 
+            'section', 'supreme court', 'pakistan', 'petitioner', 
+            'appeal', 'constitution', 'honourable'
+        ]
         has_legal_content = any(indicator.lower() in content.lower() for indicator in legal_indicators)
         
-        is_valid = has_required_fields and has_content and has_legal_content
+        is_valid = has_required_fields and has_date and has_content and has_legal_content
         
         if not is_valid:
             logger.warning(f"File validation failed: {file_info.get('file_name', 'unknown')}")
+            logger.warning(f"  Has required fields: {has_required_fields}")
+            logger.warning(f"  Has date: {has_date}")
+            logger.warning(f"  Has content: {has_content}")
+            logger.warning(f"  Has legal content: {has_legal_content}")
         
         return is_valid
 
