@@ -385,7 +385,7 @@ EXTRACTION:"""
 class AggregationAgentNode(Node):
     """Combine all information into final comprehensive response"""
     
-    def _get_query_specific_aggregation_prompt(self, user_query, classification, all_summaries, available_citations, num_cases):
+    def _get_query_specific_aggregation_prompt(self, user_query, classification, all_summaries, available_citations, num_cases, language_instruction="Respond in clear, professional English."):
         """Generate a query-specific aggregation prompt based on agent classification"""
         
         query_type = classification.get('query_type', 'general')
@@ -405,6 +405,8 @@ class AggregationAgentNode(Node):
         sections_text += f"\n## Cases Referenced\n[List ALL {num_cases} cases with brief relevance to the query]\n"
         
         return f"""You are a senior legal research assistant providing a focused response to a specific legal query. Your response will be displayed in a web interface that supports markdown formatting.
+
+🌐 LANGUAGE REQUIREMENT: {language_instruction}
 
 USER QUERY: {user_query}
 
@@ -454,6 +456,7 @@ RESPONSE:"""
         user_query = shared.get("user_query", "")
         document_summaries = shared.get("document_summaries", {})
         document_metadata = shared.get("document_metadata", {})
+        language_instruction = shared.get("language_instruction", "Respond in clear, professional English.")
         
         # Get pre-computed query classification from shared store
         classification = shared.get("query_classification", {
@@ -468,10 +471,10 @@ RESPONSE:"""
         tracker = get_progress_tracker()
         tracker.update_aggregation()
         
-        return (user_query, document_summaries, document_metadata, classification)
+        return (user_query, document_summaries, document_metadata, classification, language_instruction)
     
     def exec(self, prep_data):
-        user_query, document_summaries, document_metadata, classification = prep_data
+        user_query, document_summaries, document_metadata, classification, language_instruction = prep_data
         
         tracker = get_progress_tracker()
         
@@ -521,7 +524,7 @@ RESPONSE:"""
         logger.info(f"Synthesizing information from {len(case_info_list)} cases: {[case['citation'] for case in case_info_list]}")
         
         aggregation_prompt = self._get_query_specific_aggregation_prompt(
-            user_query, classification, all_summaries, available_citations, len(case_info_list)
+            user_query, classification, all_summaries, available_citations, len(case_info_list), language_instruction
         )
 
         try:

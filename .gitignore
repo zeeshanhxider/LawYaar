@@ -64,6 +64,9 @@ coverage/
 *.sqlite
 *.sqlite3
 *.db
+*.bak
+*.dir
+*.dat
 
 # Optional npm cache directory
 .npm
