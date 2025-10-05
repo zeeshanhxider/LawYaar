@@ -128,109 +128,130 @@ def get_legal_context(message, wa_id, name):
 
 def generate_response(message, wa_id, name):
     """
-    Generate a conversational response using Gemini AI with LawYaar RAG.
-    Maintains conversation history per user for natural, context-aware chat.
-    Automatically detects and responds in the same language as input.
+    Generate a HYBRID response: Friendly summary + Full legal research + PDF links.
+    
+    Uses LawYaar's multi-agent legal research pipeline (same as CLI) but wraps it
+    in a conversational, easy-to-understand format for WhatsApp users.
+    
+    Architecture:
+    1. Run full legal research pipeline (Classification → Retrieval → Pruning → Reading → Aggregation)
+    2. Create friendly summary using Gemini
+    3. Append full legal research details
+    4. Add PDF links at the end
     
     Args:
-        message (str): The user's message text (transcribed from voice or text message)
+        message (str): The user's legal query
         wa_id (str): WhatsApp ID of the user
         name (str): Name of the user
         
     Returns:
-        str: Generated response in the same language as input
+        str: Hybrid response (friendly summary + legal research + PDF links)
     """
     try:
-        # Detect input language first
-        detected_language = _detect_language(message)
-        logger.info(f"🌐 Detected language: {'Urdu' if detected_language == 'ur' else 'English'}")
+        logger.info(f"🔍 Processing hybrid response for {name}: {message[:100]}...")
         
-        # Check if there is already a chat history for this user
-        chat_history = check_if_chat_exists(wa_id)
+        if not LAWYAAR_AVAILABLE:
+            logger.error("❌ LawYaar legal research system not available")
+            return ("I apologize, but the legal research system is currently unavailable. "
+                   "Please try again later.")
         
-        # If a chat doesn't exist, create one with system instructions
-        if chat_history is None:
-            logger.info(f"💬 Creating new chat for {name} with wa_id {wa_id}")
-            chat_history = []
-            
-            # Start a new chat session
-            chat = conversation_model.start_chat(history=chat_history)
-            
-            # Get legal context from LawYaar RAG
-            legal_context = get_legal_context(message, wa_id, name) if LAWYAAR_AVAILABLE else ""
-            
-            # Create system instruction based on detected language
-            if detected_language == 'ur':
-                system_message = (
-                    f"آپ ایک مددگار قانونی معاون ہیں جو {name} کے ساتھ WhatsApp پر بات کر رہے ہیں۔ "
-                    f"آپ کا کام Ontario، کینیڈا کے قانونی سوالات کا جواب دینا ہے۔\n\n"
-                    f"رہنما اصول:\n"
-                    f"• دوستانہ، مختصر، اور مددگار رہیں - یہ WhatsApp ہے!\n"
-                    f"• اردو میں جواب دیں کیونکہ صارف نے اردو میں پوچھا ہے\n"
-                    f"• قانونی اصطلاحات اور کیس کے حوالے انگریزی میں رکھیں\n"
-                    f"• اگر آپ کو علم نہیں، تو ایماندار رہیں اور قانونی مشورے کی تجویز دیں\n"
-                    f"• گفتگو کو یاد رکھیں - فالو اپ سوالات پوچھیں\n\n"
-                )
-                if legal_context:
-                    system_message += f"متعلقہ قانونی معلومات:\n{legal_context}\n\n"
-                    system_message += "اس معلومات کی بنیاد پر، دوستانہ انداز میں جواب دیں۔"
-                else:
-                    system_message += "ابھی میرے پاس کوئی خاص قانونی معلومات نہیں ہے۔ عام رہنمائی فراہم کریں۔"
+        # Run full legal research pipeline with metadata
+        service = get_lawyaar_service()
+        
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(
+                        asyncio.run,
+                        service.generate_legal_response(message, wa_id, name, return_metadata=True)
+                    )
+                    research_data = future.result(timeout=180)
             else:
-                system_message = (
-                    f"You are a helpful legal assistant chatting with {name} on WhatsApp. "
-                    f"You help answer questions about Ontario, Canada law.\n\n"
-                    f"Guidelines:\n"
-                    f"• Be friendly, concise, and helpful - this is WhatsApp!\n"
-                    f"• Keep responses brief but informative (2-3 paragraphs max)\n"
-                    f"• If you don't know based on the information available, be honest and suggest consulting a lawyer\n"
-                    f"• Remember the conversation - ask follow-up questions\n"
-                    f"• Use emojis occasionally to be personable 😊\n\n"
+                research_data = loop.run_until_complete(
+                    service.generate_legal_response(message, wa_id, name, return_metadata=True)
                 )
-                if legal_context:
-                    system_message += f"Relevant legal information:\n{legal_context}\n\n"
-                    system_message += "Based on this information, provide a conversational, friendly response."
-                else:
-                    system_message += "I don't have specific legal context right now. Provide general guidance."
+        except RuntimeError:
+            research_data = asyncio.run(
+                service.generate_legal_response(message, wa_id, name, return_metadata=True)
+            )
+        
+        # Extract research components
+        full_legal_response = research_data.get("full_legal_response", "")
+        pdf_links = research_data.get("pdf_links", [])
+        doc_count = research_data.get("document_count", 0)
+        detected_language = research_data.get("detected_language", "en")
+        
+        if not full_legal_response:
+            logger.warning("Empty legal research response")
+            return "I apologize, but I couldn't generate a response to your legal query. Please try rephrasing."
+        
+        # Create friendly summary using Gemini
+        summary_prompt = f"""You are a friendly legal assistant on WhatsApp. You just completed a detailed legal research.
+        
+YOUR TASK: Create a SHORT, FRIENDLY, EASY-TO-UNDERSTAND summary (2-3 paragraphs) that:
+- Directly answers the user's question in simple language
+- Highlights the most important points
+- Uses a conversational, helpful tone
+- Keeps it brief (this is WhatsApp!)
+- Uses emojis sparingly to be personable 😊
+
+USER'S QUESTION: {message}
+
+DETAILED LEGAL RESEARCH:
+{full_legal_response[:2000]}...
+
+Write a friendly summary in {'Urdu' if detected_language == 'ur' else 'English'}:"""
+        
+        try:
+            model = genai.GenerativeModel('gemini-2.5-flash')
+            summary_response = model.generate_content(summary_prompt)
+            friendly_summary = summary_response.text.strip()
+        except Exception as e:
+            logger.error(f"Error generating summary: {e}")
+            # Fallback to first paragraph of legal response
+            friendly_summary = full_legal_response.split('\n\n')[0] if full_legal_response else "Here's what I found..."
+        
+        # Build hybrid response
+        hybrid_response = f"{friendly_summary}\n\n"
+        hybrid_response += f"━━━━━━━━━━━━━━━━━━━━\n"
+        hybrid_response += f"� *Detailed Legal Analysis*\n"
+        hybrid_response += f"━━━━━━━━━━━━━━━━━━━━\n\n"
+        
+        # Add truncated legal research (limit for WhatsApp)
+        max_legal_length = 2000
+        if len(full_legal_response) > max_legal_length:
+            truncated_legal = full_legal_response[:max_legal_length]
+            last_period = truncated_legal.rfind('.')
+            if last_period > max_legal_length - 200:
+                truncated_legal = truncated_legal[:last_period + 1]
+            hybrid_response += f"{truncated_legal}\n\n_[Full analysis truncated]_"
+        else:
+            hybrid_response += full_legal_response
+        
+        # Add PDF links
+        if pdf_links and len(pdf_links) > 0:
+            hybrid_response += "\n\n━━━━━━━━━━━━━━━━━━━━\n"
+            hybrid_response += "📄 *Full Case Documents*\n"
+            hybrid_response += "━━━━━━━━━━━━━━━━━━━━\n"
+            for i, pdf_info in enumerate(pdf_links[:5], 1):
+                case_no = pdf_info.get('case_no', 'Case')
+                url = pdf_info.get('url', '')
+                if url:
+                    hybrid_response += f"{i}. {case_no}\n   {url}\n\n"
             
-            # Send system message (not stored in history)
-            chat.send_message(system_message)
-        else:
-            logger.info(f"💬 Retrieving existing chat for {name} with wa_id {wa_id}")
-            # Restore the chat session with existing history
-            chat = conversation_model.start_chat(history=chat_history)
+            if len(pdf_links) > 5:
+                hybrid_response += f"_Plus {len(pdf_links) - 5} more documents_\n"
         
-        # For follow-up messages in existing chats, enhance with new context if available
-        if chat_history and LAWYAAR_AVAILABLE:
-            legal_context = get_legal_context(message, wa_id, name)
-            if legal_context:
-                enhanced_message = f"{message}\n\n[New legal context available: {legal_context[:500]}...]"
-                logger.info("📚 Enhanced follow-up with fresh legal context")
-            else:
-                enhanced_message = message
-        else:
-            enhanced_message = message
+        # Add footer
+        hybrid_response += f"\n_Analyzed {doc_count} legal cases_"
         
-        # Send user's message and get response
-        logger.info(f"👤 User ({detected_language}): {message[:100]}...")
-        response = chat.send_message(enhanced_message)
-        response_text = response.text
-        
-        # If input was in Urdu but response is in English, translate it
-        if detected_language == 'ur' and not _is_urdu_text(response_text):
-            logger.info("📝 Translating response to Urdu...")
-            response_text = _translate_to_urdu(response_text)
-        
-        logger.info(f"🤖 Assistant: {response_text[:100]}...")
-        
-        # Update chat history (Gemini maintains it in chat.history)
-        store_chat(wa_id, chat.history)
-        
-        return response_text
+        logger.info(f"✅ Hybrid response complete: {len(hybrid_response)} characters")
+        return hybrid_response
         
     except Exception as e:
-        logger.error(f"❌ Error generating response: {e}", exc_info=True)
-        # Detect language for error message
+        logger.error(f"❌ Error generating hybrid response: {e}", exc_info=True)
         detected_lang = _detect_language(message) if message else 'en'
         if detected_lang == 'ur':
             return "معذرت، مجھے ایک مسئلہ کا سامنا کرنا پڑا 😔 براہ کرم دوبارہ کوشش کریں۔"

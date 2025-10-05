@@ -6,6 +6,8 @@ import logging
 import os
 import sys
 import asyncio
+import csv
+from pathlib import Path
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -33,9 +35,14 @@ class LawYaarWhatsAppService:
             # Store conversation history per WhatsApp user
             self.conversation_db = "lawyaar_whatsapp_chats_db"
             
+            # Load PDF metadata for linking
+            self.pdf_metadata = self._load_pdf_metadata()
+            logger.info(f"Loaded {len(self.pdf_metadata)} PDF entries from metadata")
+            
         except Exception as e:
             logger.error(f"Error initializing LawYaar WhatsApp service: {e}")
             self.vector_db = None
+            self.pdf_metadata = {}
     
     def check_if_chat_exists(self, wa_id):
         """Check if a chat session exists for this WhatsApp ID"""
@@ -47,7 +54,65 @@ class LawYaarWhatsAppService:
         with shelve.open(self.conversation_db, writeback=True) as chats_shelf:
             chats_shelf[wa_id] = chat_history
     
-    async def generate_legal_response(self, message_body: str, wa_id: str, name: str) -> str:
+    def _load_pdf_metadata(self):
+        """Load PDF URLs from metadata.csv"""
+        metadata_path = Path(__file__).parent.parent / "scraper" / "metadata.csv"
+        pdf_map = {}
+        
+        try:
+            if not metadata_path.exists():
+                logger.warning(f"Metadata file not found: {metadata_path}")
+                return pdf_map
+            
+            with open(metadata_path, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    case_no = row.get('Case_No', '').strip()
+                    filename = row.get('Filename', '').strip()
+                    pdf_url = row.get('PDF_URL', '').strip()
+                    case_title = row.get('Case_Title', '').strip()
+                    
+                    if case_no and pdf_url:
+                        # Map both case number and filename to PDF info
+                        pdf_map[case_no] = {'url': pdf_url, 'title': case_title, 'case_no': case_no}
+                        if filename:
+                            # Remove .txt extension if present
+                            base_filename = filename.replace('.txt', '').replace('.pdf', '')
+                            pdf_map[base_filename] = {'url': pdf_url, 'title': case_title, 'case_no': case_no}
+            
+            return pdf_map
+            
+        except Exception as e:
+            logger.error(f"Error loading PDF metadata: {e}")
+            return pdf_map
+    
+    def _get_pdf_links_for_documents(self, document_names: list) -> list:
+        """Get PDF URLs for the given document names"""
+        pdf_links = []
+        seen_urls = set()
+        
+        for doc_name in document_names:
+            # Try exact match first
+            if doc_name in self.pdf_metadata:
+                pdf_info = self.pdf_metadata[doc_name]
+                url = pdf_info['url']
+                if url and url not in seen_urls:
+                    pdf_links.append(pdf_info)
+                    seen_urls.add(url)
+                continue
+            
+            # Try partial match (remove .txt extension)
+            base_name = doc_name.replace('.txt', '').replace('.pdf', '')
+            if base_name in self.pdf_metadata:
+                pdf_info = self.pdf_metadata[base_name]
+                url = pdf_info['url']
+                if url and url not in seen_urls:
+                    pdf_links.append(pdf_info)
+                    seen_urls.add(url)
+        
+        return pdf_links
+    
+    async def generate_legal_response(self, message_body: str, wa_id: str, name: str, return_metadata: bool = False):
         """
         Generate a legal research response using LawYaar's RAG system.
         
@@ -55,9 +120,10 @@ class LawYaarWhatsAppService:
             message_body: The user's question/query
             wa_id: WhatsApp user ID for conversation tracking
             name: User's name
+            return_metadata: If True, returns dict with response and metadata; if False, returns string
             
         Returns:
-            str: AI-generated legal response
+            str or dict: AI-generated legal response, optionally with metadata
         """
         try:
             logger.info(f"Processing legal query from {name} ({wa_id}): {message_body[:100]}")
@@ -116,13 +182,28 @@ class LawYaarWhatsAppService:
                     empty_response = await self._translate_to_urdu(empty_response)
                 return empty_response
             
+            # Get PDF links for relevant documents
+            relevant_docs = shared.get("relevant_documents", [])
+            pdf_links = self._get_pdf_links_for_documents(relevant_docs)
+            
+            # If return_metadata is True, return dict with full response and metadata
+            if return_metadata:
+                return {
+                    "full_legal_response": final_response,
+                    "relevant_documents": relevant_docs,
+                    "pdf_links": pdf_links,
+                    "document_count": len(relevant_docs),
+                    "detected_language": detected_language
+                }
+            
+            # Otherwise, format for WhatsApp with PDF links
             # If input was in Urdu but response is in English, translate it
             if detected_language == 'ur':
                 logger.info("Detected Urdu input - translating response to Urdu...")
                 final_response = await self._translate_to_urdu(final_response)
             
             # Format response for WhatsApp (keep it concise)
-            whatsapp_response = self._format_for_whatsapp(final_response, shared)
+            whatsapp_response = self._format_for_whatsapp(final_response, shared, pdf_links)
             
             # Update conversation history
             new_history = chat_history if chat_history else []
@@ -204,7 +285,7 @@ URDU TRANSLATION:"""
             logger.error(f"❌ Translation error: {e}")
             return english_text  # Fallback to English if translation fails
     
-    def _format_for_whatsapp(self, response: str, shared: dict) -> str:
+    def _format_for_whatsapp(self, response: str, shared: dict, pdf_links: list = None) -> str:
         """
         Format the legal response for WhatsApp.
         Keep it concise and readable on mobile.
@@ -212,6 +293,7 @@ URDU TRANSLATION:"""
         Args:
             response: The full legal response
             shared: Shared state from the research flow
+            pdf_links: List of PDF link dictionaries (optional)
             
         Returns:
             str: Formatted response for WhatsApp
@@ -220,7 +302,7 @@ URDU TRANSLATION:"""
         doc_count = len(shared.get("relevant_documents", []))
         
         # Truncate very long responses for WhatsApp
-        max_length = 4000  # WhatsApp has a ~4096 character limit
+        max_length = 3500  # Leave room for PDF links
         
         if len(response) > max_length:
             truncated = response[:max_length - 200]
@@ -235,6 +317,18 @@ URDU TRANSLATION:"""
             # Add citation info at the end
             if doc_count > 0:
                 response += f"\n\n_Based on analysis of {doc_count} relevant legal cases._"
+        
+        # Add PDF links section if available
+        if pdf_links and len(pdf_links) > 0:
+            response += "\n\n📄 *Full Case Documents:*\n"
+            for i, pdf_info in enumerate(pdf_links[:5], 1):  # Limit to 5 links
+                case_no = pdf_info.get('case_no', 'Case')
+                url = pdf_info.get('url', '')
+                if url:
+                    response += f"{i}. {case_no}: {url}\n"
+            
+            if len(pdf_links) > 5:
+                response += f"\n_Plus {len(pdf_links) - 5} more case documents_"
         
         return response
 
