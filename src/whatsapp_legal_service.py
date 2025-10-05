@@ -56,7 +56,7 @@ class LawYaarWhatsAppService:
     
     def _load_pdf_metadata(self):
         """Load PDF URLs from metadata.csv"""
-        metadata_path = Path(__file__).parent.parent / "scraper" / "metadata.csv"
+        metadata_path = Path(__file__).parent / "scraper" / "metadata.csv"
         pdf_map = {}
         
         try:
