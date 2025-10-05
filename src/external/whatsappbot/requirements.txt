@@ -1,0 +1,11 @@
+flask
+python-dotenv
+openai
+aiohttp
+requests
+google-generativeai
+PyPDF2
+chromadb
+sentence-transformers
+# Voice message handling dependencies
+google-cloud-speech  # Optional: for Google Speech-to-Text transcription
