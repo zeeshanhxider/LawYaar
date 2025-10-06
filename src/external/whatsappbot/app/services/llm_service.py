@@ -278,10 +278,12 @@ def get_legal_context(message, wa_id, name):
     try:
         service = get_lawyaar_service()
         
-        # Run async function in sync context
+        # Run async function in a thread-safe way
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
+            # Check if we're in an async context
+            try:
+                asyncio.get_running_loop()
+                # We're in an async context, use thread executor
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(
@@ -289,14 +291,14 @@ def get_legal_context(message, wa_id, name):
                         service.generate_legal_response(message, wa_id, name)
                     )
                     context = future.result(timeout=120)
-            else:
-                context = loop.run_until_complete(
+            except RuntimeError:
+                # No running loop, safe to use asyncio.run directly
+                context = asyncio.run(
                     service.generate_legal_response(message, wa_id, name)
                 )
-        except RuntimeError:
-            context = asyncio.run(
-                service.generate_legal_response(message, wa_id, name)
-            )
+        except Exception as e:
+            logger.error(f"Error running async context retrieval: {e}")
+            raise
         
         return context
     except Exception as e:
@@ -350,9 +352,20 @@ def generate_response(message, wa_id, name):
         # Run full legal research pipeline with metadata
         service = get_lawyaar_service()
         
+        # Use asyncio.run() which creates a fresh event loop - handles thread safety
+        import nest_asyncio
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
+            # Try to enable nested event loops (needed for some environments)
+            nest_asyncio.apply()
+        except:
+            pass  # nest_asyncio not available, that's ok
+        
+        # Run async function in a thread-safe way
+        try:
+            # Check if we're in an async context
+            try:
+                asyncio.get_running_loop()
+                # We're in an async context, use thread executor
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(
@@ -360,14 +373,14 @@ def generate_response(message, wa_id, name):
                         service.generate_legal_response(message, wa_id, name, return_metadata=True)
                     )
                     research_data = future.result(timeout=180)
-            else:
-                research_data = loop.run_until_complete(
+            except RuntimeError:
+                # No running loop, safe to use asyncio.run directly
+                research_data = asyncio.run(
                     service.generate_legal_response(message, wa_id, name, return_metadata=True)
                 )
-        except RuntimeError:
-            research_data = asyncio.run(
-                service.generate_legal_response(message, wa_id, name, return_metadata=True)
-            )
+        except Exception as e:
+            logger.error(f"Error running async research: {e}")
+            raise
         
         # Extract research components
         full_legal_response = research_data.get("full_legal_response", "")

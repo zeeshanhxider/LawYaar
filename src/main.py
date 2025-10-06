@@ -95,9 +95,9 @@ async def run_online_research(user_query: str, vector_db=None):
         "retrieval_count": 0,
         "unique_documents": [],
         "unique_document_count": 0,
-        "pruning_results": {},
-        "relevant_documents": [],
-        "document_summaries": {},
+        "processed_documents": [],
+        "successful_documents": [],
+        "failed_documents": [],
         "final_response": ""
     }
     
@@ -111,7 +111,7 @@ async def run_online_research(user_query: str, vector_db=None):
     print(f"Query: {user_query}")
     print(f"Documents found: {shared['retrieval_count']}")
     print(f"Unique documents: {shared['unique_document_count']}")
-    print(f"Relevant documents: {len(shared['relevant_documents'])}")
+    print(f"Processed documents: {len(shared['successful_documents'])}")
     print("\nFinal Response:")
     print("-" * 40)
     print(shared['final_response'])

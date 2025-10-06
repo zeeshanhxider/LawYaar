@@ -274,56 +274,67 @@ async def broadcast_progress(session_id: str, progress_data: Dict):
         for ws in disconnected:
             websocket_connections[session_id].remove(ws)
 
-def extract_citations_from_response(response: str, document_summaries: Dict) -> List[CitedDocument]:
+def extract_citations_from_response(response: str, processed_documents: list) -> List[CitedDocument]:
     """Extract citations from the research response for Supreme Court of Pakistan cases"""
     citations = []
     
-    for i, (doc_name, summary) in enumerate(document_summaries.items()):
+    for i, doc_data in enumerate(processed_documents):
+        # Skip failed documents
+        if doc_data.get('failed', False):
+            continue
+            
+        # Extract data from processed document
+        doc_name = doc_data.get('doc_id', '')
+        summary = doc_data.get('summary', '')
+        metadata = doc_data.get('metadata', {})
+        
         # Extract citation from filename (case number)
         citation = doc_name.replace('.txt', '')
         
-        # Try to extract metadata from the file
-        case_title = citation
-        court = "Supreme Court of Pakistan"
-        date = "2025"
-        pdf_url = None
+        # Try to get metadata from processed document first
+        case_title = metadata.get('case_title', citation)
+        court = metadata.get('court', "Supreme Court of Pakistan")
+        date = metadata.get('judgment_date', "2025")
+        pdf_url = metadata.get('pdf_url')
         
-        try:
-            # Read the file to get actual metadata
-            config = get_system_config()
-            file_path = os.path.join(config.DOCUMENTS_DIR, doc_name)
+        # If metadata is empty, try to read from file
+        if not metadata:
+            try:
+                # Read the file to get actual metadata
+                config = get_system_config()
+                file_path = os.path.join(config.DOCUMENTS_DIR, doc_name)
+                
+                if os.path.exists(file_path):
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        content = f.read(2000)  # Read first 2000 chars to get metadata
+                        
+                        # Extract metadata from the header section
+                        for line in content.split('\n'):
+                            line_stripped = line.strip()
+                            
+                            # Extract case title
+                            if 'Case Title:' in line_stripped or 'case_title:' in line_stripped.lower():
+                                case_title = line_stripped.split(':', 1)[1].strip()
+                            
+                            # Extract judgment date
+                            elif 'Judgment Date:' in line_stripped or 'judgment_date:' in line_stripped.lower():
+                                date = line_stripped.split(':', 1)[1].strip()
+                            
+                            # Extract PDF URL
+                            elif 'PDF URL:' in line_stripped or 'pdf_url:' in line_stripped.lower():
+                                pdf_url = line_stripped.split(':', 1)[1].strip()
+                                if pdf_url.lower() == 'n/a':
+                                    pdf_url = None
+                            
+                            # Extract court name (though it should always be Supreme Court of Pakistan)
+                            elif 'Court:' in line_stripped or line_stripped == 'SUPREME COURT OF PAKISTAN':
+                                if ':' in line_stripped:
+                                    court = line_stripped.split(':', 1)[1].strip()
+                                else:
+                                    court = "Supreme Court of Pakistan"
             
-            if os.path.exists(file_path):
-                with open(file_path, 'r', encoding='utf-8') as f:
-                    content = f.read(2000)  # Read first 2000 chars to get metadata
-                    
-                    # Extract metadata from the header section
-                    for line in content.split('\n'):
-                        line_stripped = line.strip()
-                        
-                        # Extract case title
-                        if 'Case Title:' in line_stripped or 'case_title:' in line_stripped.lower():
-                            case_title = line_stripped.split(':', 1)[1].strip()
-                        
-                        # Extract judgment date
-                        elif 'Judgment Date:' in line_stripped or 'judgment_date:' in line_stripped.lower():
-                            date = line_stripped.split(':', 1)[1].strip()
-                        
-                        # Extract PDF URL
-                        elif 'PDF URL:' in line_stripped or 'pdf_url:' in line_stripped.lower():
-                            pdf_url = line_stripped.split(':', 1)[1].strip()
-                            if pdf_url.lower() == 'n/a':
-                                pdf_url = None
-                        
-                        # Extract court name (though it should always be Supreme Court of Pakistan)
-                        elif 'Court:' in line_stripped or line_stripped == 'SUPREME COURT OF PAKISTAN':
-                            if ':' in line_stripped:
-                                court = line_stripped.split(':', 1)[1].strip()
-                            else:
-                                court = "Supreme Court of Pakistan"
-        
-        except Exception as e:
-            logger.error(f"Error reading metadata from file {doc_name}: {e}")
+            except Exception as e:
+                logger.error(f"Error reading metadata from file {doc_name}: {e}")
         
         # Create citation entry with extracted metadata
         citations.append(CitedDocument(
@@ -616,9 +627,9 @@ async def start_research(query: ResearchQuery, background_tasks: BackgroundTasks
                 "retrieval_count": 0,
                 "unique_documents": [],
                 "unique_document_count": 0,
-                "pruning_results": {},
-                "relevant_documents": [],
-                "document_summaries": {},
+                "processed_documents": [],
+                "successful_documents": [],
+                "failed_documents": [],
                 "final_response": ""
             }
             logger.info(f"[{session_id}] ✓ Shared store created with query: {query.query[:50]}...")
@@ -679,22 +690,40 @@ async def start_research(query: ResearchQuery, background_tasks: BackgroundTasks
             ]
             logger.info(f"[{session_id}] ✓ Legal principles and recommendations set")
             
-            # Create citations from document summaries
+            # Create citations from processed documents
             logger.info(f"[{session_id}] STEP 14: Extracting citations from response")
-            citations = extract_citations_from_response(response_text, shared.get("document_summaries", {}))
+            processed_docs = shared.get("processed_documents", [])
+            citations = extract_citations_from_response(response_text, processed_docs)
             logger.info(f"[{session_id}] ✓ Extracted {len(citations)} citations")
             
-            # Extract pruning details
-            logger.info(f"[{session_id}] STEP 14.5: Extracting pruning details")
+            # Extract processing details (replacement for pruning details)
+            logger.info(f"[{session_id}] STEP 14.5: Extracting processing details")
             pruning_details = []
-            pruning_results = shared.get("pruning_results", {})
-            for doc_name, result_data in pruning_results.items():
+            successful_docs = shared.get("successful_documents", [])
+            failed_docs = shared.get("failed_documents", [])
+            
+            # Add successful documents as "relevant"
+            for doc_data in successful_docs:
+                doc_name = doc_data.get('doc_id', 'Unknown')
+                summary = doc_data.get('summary', '')
+                # Extract first sentence as explanation
+                explanation = summary.split('.')[0] + '.' if '.' in summary else summary[:100]
                 pruning_details.append(PruningDetail(
                     documentName=doc_name,
-                    relevant=result_data.get('relevant', False),
-                    explanation=result_data.get('explanation', 'No explanation provided')
+                    relevant=True,
+                    explanation=f"Processed successfully. {explanation}"
                 ))
-            logger.info(f"[{session_id}] ✓ Extracted {len(pruning_details)} pruning details ({sum(1 for p in pruning_details if p.relevant)} relevant, {sum(1 for p in pruning_details if not p.relevant)} excluded)")
+            
+            # Add failed documents as "not relevant"
+            for doc_data in failed_docs:
+                doc_name = doc_data.get('doc_id', 'Unknown')
+                pruning_details.append(PruningDetail(
+                    documentName=doc_name,
+                    relevant=False,
+                    explanation="Document processing failed"
+                ))
+            
+            logger.info(f"[{session_id}] ✓ Extracted {len(pruning_details)} processing details ({len(successful_docs)} successful, {len(failed_docs)} failed)")
             
             # Get usage and cost data (provider-agnostic)
             cost_breakdown = None
@@ -735,7 +764,7 @@ async def start_research(query: ResearchQuery, background_tasks: BackgroundTasks
                 timestamp=datetime.now(),
                 documentsFound=shared.get("retrieval_count", 0),
                 uniqueDocuments=shared.get("unique_document_count", 0),
-                relevantDocuments=len(shared.get("relevant_documents", [])),
+                relevantDocuments=len(shared.get("successful_documents", [])),
                 response=response_text,
                 executiveSummary=executive_summary,
                 keyFindings=key_findings[:6],  # Limit to 6 findings

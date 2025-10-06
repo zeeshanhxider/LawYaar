@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 try:
     from pocketflow import Flow, AsyncFlow
     from nodes import DocumentIngestionNode, VectorIndexCreationNode, InitialRetrievalNode, DocumentExtractionNode
-    from nodes_agents import QueryClassificationNode, PruningAgentNode, ReadingAgentNode, AggregationAgentNode
+    from nodes_agents import DocumentProcessorNode, ResponseComposerNode
     HAS_POCKETFLOW = True
 except Exception as e:
     # Fallback stubs so the module can be imported even when pocketflow is not installed.
@@ -61,18 +61,16 @@ def create_online_research_flow():
         return AsyncFlow()
 
     # Create nodes
-    classification_node = QueryClassificationNode()
     retrieval_node = InitialRetrievalNode()
     extraction_node = DocumentExtractionNode()
-    pruning_node = PruningAgentNode()
-    reading_node = ReadingAgentNode()
-    aggregation_node = AggregationAgentNode()
+    processor_node = DocumentProcessorNode()
+    composer_node = ResponseComposerNode()
 
-    # Connect nodes in sequence - classification happens first
-    classification_node >> retrieval_node >> extraction_node >> pruning_node >> reading_node >> aggregation_node
+    # Connect nodes in sequence - minimal pipeline
+    retrieval_node >> extraction_node >> processor_node >> composer_node
 
     # Create async flow (required for parallel processing nodes)
-    flow = AsyncFlow(start=classification_node)
+    flow = AsyncFlow(start=retrieval_node)
     logger.info("Created online research flow")
     return flow
 

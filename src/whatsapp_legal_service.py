@@ -167,9 +167,9 @@ class LawYaarWhatsAppService:
                 "retrieval_count": 0,
                 "unique_documents": [],
                 "unique_document_count": 0,
-                "pruning_results": {},
-                "relevant_documents": [],
-                "document_summaries": {},
+                "processed_documents": [],
+                "successful_documents": [],
+                "failed_documents": [],
                 "final_response": ""
             }
             
@@ -190,17 +190,19 @@ class LawYaarWhatsAppService:
                     empty_response = await self._translate_to_urdu(empty_response)
                 return empty_response
             
-            # Get PDF links for relevant documents
-            relevant_docs = shared.get("relevant_documents", [])
-            pdf_links = self._get_pdf_links_for_documents(relevant_docs)
+            # Get PDF links for successful documents (new field name)
+            successful_docs = shared.get("successful_documents", [])
+            # Extract doc_id from processed documents
+            doc_names = [doc.get('doc_id', '') for doc in successful_docs]
+            pdf_links = self._get_pdf_links_for_documents(doc_names)
             
             # If return_metadata is True, return dict with full response and metadata
             if return_metadata:
                 return {
                     "full_legal_response": final_response,
-                    "relevant_documents": relevant_docs,
+                    "relevant_documents": doc_names,  # Keep same key for backward compatibility
                     "pdf_links": pdf_links,
-                    "document_count": len(relevant_docs),
+                    "document_count": len(doc_names),
                     "detected_language": detected_language
                 }
             
@@ -346,8 +348,8 @@ URDU TRANSLATION:"""
         Returns:
             str: Formatted response for WhatsApp
         """
-        # Get document count for citation
-        doc_count = len(shared.get("relevant_documents", []))
+        # Get document count for citation (use successful_documents from new pipeline)
+        doc_count = len(shared.get("successful_documents", []))
         
         # Truncate very long responses for WhatsApp
         max_length = 3500  # Leave room for PDF links
