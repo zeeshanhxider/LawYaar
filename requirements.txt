@@ -18,3 +18,6 @@ chromadb
 sentence-transformers
 # Voice message handling dependencies
 google-cloud-speech  # Optional: for Google Speech-to-Text transcription
+# PDF generation dependencies
+reportlab>=4.0.0
+nest-asyncio>=1.5.0

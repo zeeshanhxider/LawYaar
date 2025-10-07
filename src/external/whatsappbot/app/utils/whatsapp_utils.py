@@ -419,24 +419,33 @@ def process_whatsapp_message(body):
             print(f"✅ Transcription successful: '{transcribed_text}'")
             logging.info(f"📝 Transcription from {name}: {transcribed_text}")
             
-            # Import PDF handlers for voice messages too
-            from app.services.llm_service import _is_pdf_rejection, _handle_pdf_rejection
+            # ✅ INTELLIGENT PDF STATE TRACKING
+            # Only check for PDF rejection if there's actually a pending PDF offer
+            from app.services.llm_service import check_if_chat_exists, _is_pdf_rejection, _handle_pdf_rejection
             
-            # Check if this voice message is a PDF rejection
-            if _is_pdf_rejection(transcribed_text):
-                print("🚫 PDF rejection detected in VOICE - handling gracefully...")
-                # Get language from last interaction
-                from app.services.llm_service import check_if_chat_exists
-                detected_language = 'en'  # default
-                try:
-                    chat_history = check_if_chat_exists(wa_id)
-                    if chat_history and len(chat_history) > 0:
-                        for msg in reversed(chat_history):
-                            if msg.get('role') == 'model' and 'research_data' in msg:
-                                detected_language = msg['research_data'].get('detected_language', 'en')
-                                break
-                except:
-                    pass
+            # Check if there's a pending PDF offer in chat history
+            has_pending_pdf_offer = False
+            detected_language = 'en'  # default
+            
+            try:
+                chat_history = check_if_chat_exists(wa_id)
+                if chat_history and len(chat_history) > 0:
+                    # Look for most recent message with research_data
+                    for msg in reversed(chat_history):
+                        if msg.get('role') == 'model' and 'research_data' in msg:
+                            research_data = msg['research_data']
+                            # Only consider it pending if type is "pending_pdf_request"
+                            if research_data.get('type') == 'pending_pdf_request':
+                                has_pending_pdf_offer = True
+                                detected_language = research_data.get('detected_language', 'en')
+                                logger.info("📋 Found pending PDF offer in chat history")
+                            break
+            except Exception as e:
+                logger.warning(f"⚠️ Could not check PDF state: {e}")
+            
+            # ONLY check for rejection if there's an actual pending PDF offer
+            if has_pending_pdf_offer and _is_pdf_rejection(transcribed_text):
+                print("🚫 PDF rejection detected in VOICE (verified pending offer) - handling gracefully...")
                 
                 # Send friendly acknowledgment as VOICE reply
                 rejection_response = _handle_pdf_rejection(wa_id, detected_language)
@@ -462,7 +471,7 @@ def process_whatsapp_message(body):
             
             # 3. Generate AI response using Gemini + RAG
             print("🤖 Step 3: Generating AI response...")
-            ai_response = generate_response(transcribed_text, wa_id, name)
+            ai_response = generate_response(transcribed_text, wa_id, name, message_source='voice')  # ✅ VOICE queries get summary + PDF offer
             print(f"🤖 AI Response type: {type(ai_response)}")
             
             # Handle different response types
@@ -601,24 +610,33 @@ def process_whatsapp_message(body):
         print(f"📩 Text message from {name} ({wa_id}): {message_body}")
         logging.info(f"📩 Text message from {name} ({wa_id}): {message_body}")
 
-        # Import PDF rejection handlers
-        from app.services.llm_service import _is_pdf_rejection, _handle_pdf_rejection
+        # ✅ INTELLIGENT PDF STATE TRACKING
+        # Only check for PDF rejection if there's actually a pending PDF offer
+        from app.services.llm_service import check_if_chat_exists, _is_pdf_rejection, _handle_pdf_rejection
         
-        # Check if this is a PDF rejection (user said "no" to PDF offer)
-        if _is_pdf_rejection(message_body):
-            print("🚫 PDF rejection detected - handling gracefully...")
-            # Get language from last interaction
-            from app.services.llm_service import check_if_chat_exists
-            detected_language = 'en'  # default
-            try:
-                chat_history = check_if_chat_exists(wa_id)
-                if chat_history and len(chat_history) > 0:
-                    for msg in reversed(chat_history):
-                        if msg.get('role') == 'model' and 'research_data' in msg:
-                            detected_language = msg['research_data'].get('detected_language', 'en')
-                            break
-            except:
-                pass
+        # Check if there's a pending PDF offer in chat history
+        has_pending_pdf_offer = False
+        detected_language = 'en'  # default
+        
+        try:
+            chat_history = check_if_chat_exists(wa_id)
+            if chat_history and len(chat_history) > 0:
+                # Look for most recent message with research_data
+                for msg in reversed(chat_history):
+                    if msg.get('role') == 'model' and 'research_data' in msg:
+                        research_data = msg['research_data']
+                        # Only consider it pending if type is "pending_pdf_request"
+                        if research_data.get('type') == 'pending_pdf_request':
+                            has_pending_pdf_offer = True
+                            detected_language = research_data.get('detected_language', 'en')
+                            logger.info("📋 Found pending PDF offer in chat history")
+                        break
+        except Exception as e:
+            logger.warning(f"⚠️ Could not check PDF state: {e}")
+        
+        # ONLY check for rejection if there's an actual pending PDF offer
+        if has_pending_pdf_offer and _is_pdf_rejection(message_body):
+            print("🚫 PDF rejection detected (verified pending offer) - handling gracefully...")
             
             # Send friendly acknowledgment
             rejection_response = _handle_pdf_rejection(wa_id, detected_language)
@@ -629,21 +647,48 @@ def process_whatsapp_message(body):
 
         # Gemini Integration with RAG
         print("🤖 Generating AI response with Gemini + RAG...")
-        response = generate_response(message_body, wa_id, name)
+        response = generate_response(message_body, wa_id, name, message_source='text')  # ✅ TEXT queries get summary + PDF
         
         # Handle different response types
         if isinstance(response, dict):
             response_type = response.get('type', '')
             
+            # Handle TEXT with PDF (NEW: Summary + PDF together)
+            if response_type == 'text_with_pdf':
+                print("📄 TEXT with PDF response detected!")
+                text_summary = response.get('text_summary', '')
+                pdf_path = response.get('pdf_path')
+                pdf_message = response.get('pdf_message', 'Here is your detailed report.')
+                
+                # Send text summary FIRST
+                print(f"📤 Sending text summary ({len(text_summary)} chars)...")
+                summary_data = get_text_message_input(recipient, text_summary, context_message_id=message_id)
+                send_message(summary_data)
+                
+                # Send PDF document with message
+                if pdf_path and os.path.exists(pdf_path):
+                    print(f"📤 Sending PDF document: {pdf_path}")
+                    send_document(recipient, pdf_path, caption=pdf_message, context_message_id=message_id)
+                    
+                    # Cleanup PDF file
+                    try:
+                        os.remove(pdf_path)
+                        print(f"🗑️ Cleaned up PDF: {pdf_path}")
+                    except:
+                        pass
+                else:
+                    print("⚠️ PDF path not found or doesn't exist")
+                return
+            
             # Handle voice response with PDF prep (shouldn't happen for text, but handle anyway)
-            if response_type == 'voice_with_pdf_prep':
+            elif response_type == 'voice_with_pdf_prep':
                 print("📄 Voice response with PDF prep detected in text handler!")
                 voice_summary = response.get('voice_summary', '')
                 # For text messages, just use the summary as regular text
                 response = voice_summary
                 print(f"✅ Using voice summary as text ({len(response)} chars)")
             
-            # Handle explicit PDF response
+            # Handle explicit PDF response (legacy)
             elif response_type == 'pdf_response':
                 print("📄 PDF response detected!")
                 pdf_path = response.get('pdf_path')

@@ -96,17 +96,25 @@ def _is_legal_query(message: str) -> str:
     """
     message_lower = message.lower().strip()
     
-    # Quick keyword check for obvious greetings/chitchat
+    # Quick keyword check for obvious greetings/chitchat (English + Urdu)
     chitchat_keywords = [
-        'hi', 'hello', 'hey', 'assalam', 'salam', 'greetings',
-        'thanks', 'thank you', 'ok', 'okay', 'bye', 'goodbye',
-        'how are you', 'what is your name', 'who are you',
-        'good morning', 'good afternoon', 'good evening'
+        # English greetings
+        'hi', 'hello', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening',
+        # Urdu/Arabic greetings
+        'assalam', 'salam', 'السلام', 'وعليكم', 'ہیلو', 'ہائی',
+        # Thanks/acknowledgments  
+        'thanks', 'thank you', 'شکریہ', 'shukriya', 'jazakallah',
+        # Simple responses
+        'ok', 'okay', 'ٹھیک', 'اچھا', 'theek', 'acha',
+        # Farewells
+        'bye', 'goodbye', 'خدا حافظ', 'allah hafiz', 'khuda hafiz',
+        # Questions about bot
+        'how are you', 'what is your name', 'who are you', 'کون ہو', 'نام کیا'
     ]
     
     # If message is very short and matches chitchat, skip LLM call
-    if len(message_lower) < 20 and any(keyword in message_lower for keyword in chitchat_keywords):
-        logger.info(f"Quick chitchat detection: {message[:30]}")
+    if len(message_lower) < 30 and any(keyword in message_lower for keyword in chitchat_keywords):
+        logger.info(f"✅ Quick chitchat detection: {message[:30]}")
         return "CHITCHAT"
     
     # For ambiguous cases, use LLM to classify
@@ -115,36 +123,56 @@ def _is_legal_query(message: str) -> str:
         
         classification_prompt = f"""You are a message classifier for a Pakistani legal assistant chatbot.
 
-USER MESSAGE: {message}
+USER MESSAGE: "{message}"
 
 TASK: Classify this message into ONE category:
 
-A) LEGAL - Questions about Pakistani law, Supreme Court cases, legal rights, procedures, bail, sentencing, contracts, property law, family law, criminal law, constitutional law, etc.
+A) CHITCHAT - Greetings, small talk, acknowledgments, questions about the bot
+   Examples:
+   - "Hi", "Hello", "Assalam o alaikum", "السلام عليكم"
+   - "How are you?", "What's your name?", "Who are you?"
+   - "Thanks", "Thank you", "شکریہ", "OK", "Okay", "ٹھیک ہے"
+   - "Bye", "Goodbye", "خدا حافظ", "Allah hafiz"
+   - Any greeting or social pleasantry
 
-B) CHITCHAT - Greetings, thanks, small talk (hi, hello, how are you, etc.)
+B) LEGAL - Questions about Pakistani law, legal rights, procedures, cases
+   Examples:
+   - "What are grounds for eviction?"
+   - "Can I get bail in a murder case?"
+   - "What are tenant rights in Pakistan?"
+   - "How to file a petition?"
+   - ANY question related to law, courts, legal rights, procedures
+   
+C) IRRELEVANT - Topics unrelated to law OR the bot
+   Examples:
+   - "What's the weather?", "Tell me a joke", "Recipe for biryani"
+   - Math problems, sports scores, movie recommendations
+   - General knowledge NOT related to law
 
-C) IRRELEVANT - Topics completely unrelated to law (weather, sports, recipes, jokes, math problems, movie recommendations, etc.)
+IMPORTANT RULES:
+1. If message is a greeting (hi, hello, salam, etc.) → CHITCHAT
+2. If message asks about law/legal matters → LEGAL
+3. Only use IRRELEVANT for topics completely outside law and greetings
+4. When in doubt between CHITCHAT and LEGAL → choose CHITCHAT for greetings
 
-IMPORTANT: Be strict about what counts as LEGAL. Only classify as LEGAL if it's genuinely related to law or legal matters.
+Respond with ONLY one word: "CHITCHAT", "LEGAL", or "IRRELEVANT"
 
-Respond with ONLY one word: "LEGAL", "CHITCHAT", or "IRRELEVANT"
-
-RESPONSE:"""
+CLASSIFICATION:"""
         
         result = call_llm(classification_prompt).strip().upper()
         
-        # Extract classification
-        if "LEGAL" in result:
-            classification = "LEGAL"
-        elif "CHITCHAT" in result:
+        # Extract classification (prioritize CHITCHAT for greetings)
+        if "CHITCHAT" in result:
             classification = "CHITCHAT"
+        elif "LEGAL" in result:
+            classification = "LEGAL"
         elif "IRRELEVANT" in result:
             classification = "IRRELEVANT"
         else:
             # Default to LEGAL to be safe
             classification = "LEGAL"
         
-        logger.info(f"Message classification: {classification} - {message[:50]}")
+        logger.info(f"🤖 LLM classification: {classification} - Message: {message[:50]}")
         return classification
         
     except Exception as e:
@@ -156,6 +184,7 @@ RESPONSE:"""
 def _handle_chitchat(message: str, wa_id: str, name: str) -> str:
     """
     Generate a friendly conversational response for non-legal messages.
+    Automatically detects language and responds accordingly.
     
     Args:
         message: The user's message
@@ -163,29 +192,53 @@ def _handle_chitchat(message: str, wa_id: str, name: str) -> str:
         name: User's name
         
     Returns:
-        str: Friendly conversational response
+        str: Friendly conversational response in matching language
     """
     try:
+        # Detect language of user's message
+        detected_lang = _detect_language(message)
+        logger.info(f"💬 Chitchat detected in {'Urdu' if detected_lang == 'ur' else 'English'}")
+        
         # Get chat history for context
         chat_history = check_if_chat_exists(wa_id)
         
         from utils.call_llm import call_llm
         
-        chitchat_prompt = f"""You are a friendly Pakistani legal assistant chatbot on WhatsApp named "LawYaar".
+        # Language-specific prompt
+        if detected_lang == 'ur':
+            chitchat_prompt = f"""You are a friendly Pakistani legal assistant chatbot on WhatsApp named "LawYaar".
 
 USER: {name}
 MESSAGE: {message}
 
-Generate a warm, brief, conversational response (2-3 sentences max). 
+Generate a warm, brief, conversational response IN URDU (2-3 sentences max). 
 
 Guidelines:
+- Respond in URDU script (اردو)
 - Be friendly and professional
-- If it's a greeting, greet back and offer help with legal questions
-- If it's thanks, acknowledge and offer further assistance
+- If greeting, greet back and offer help with legal questions
+- If thanks, acknowledge and offer further assistance
 - Keep it SHORT (this is WhatsApp)
 - Use emojis sparingly 😊
 
-RESPONSE:"""
+URDU RESPONSE:"""
+        else:
+            chitchat_prompt = f"""You are a friendly Pakistani legal assistant chatbot on WhatsApp named "LawYaar".
+
+USER: {name}
+MESSAGE: {message}
+
+Generate a warm, brief, conversational response IN ENGLISH (2-3 sentences max). 
+
+Guidelines:
+- Respond in ENGLISH
+- Be friendly and professional
+- If greeting, greet back and offer help with legal questions
+- If thanks, acknowledge and offer further assistance
+- Keep it SHORT (this is WhatsApp)
+- Use emojis sparingly 😊
+
+ENGLISH RESPONSE:"""
         
         chitchat_response = call_llm(chitchat_prompt).strip()
         
@@ -195,7 +248,7 @@ RESPONSE:"""
         new_history.append({"role": "model", "parts": [chitchat_response]})
         store_chat(wa_id, new_history)
         
-        logger.info(f"✅ Chitchat response generated for {name}")
+        logger.info(f"✅ Chitchat response generated for {name} in {'Urdu' if detected_lang == 'ur' else 'English'}")
         return chitchat_response
         
     except Exception as e:
@@ -306,7 +359,7 @@ def get_legal_context(message, wa_id, name):
         return ""
 
 
-def generate_response(message, wa_id, name):
+def generate_response(message, wa_id, name, message_source='text'):
     """
     Generate a HYBRID response: Friendly summary + Full legal research + PDF links.
     
@@ -316,29 +369,31 @@ def generate_response(message, wa_id, name):
     Architecture:
     1. Check if message is a legal query (filter greetings/chitchat)
     2. Run full legal research pipeline (Classification → Retrieval → Pruning → Reading → Aggregation)
-    3. Create friendly summary using Gemini
-    4. Append full legal research details
-    5. Add PDF links at the end
+    3. For TEXT queries: Generate and send PDF immediately
+    4. For VOICE queries: Send voice summary + PDF offer
     
     Args:
         message (str): The user's legal query
         wa_id (str): WhatsApp ID of the user
         name (str): Name of the user
+        message_source (str): 'text' or 'voice' - determines response format
         
     Returns:
-        str: Hybrid response (friendly summary + legal research + PDF links)
+        For voice: dict with voice_summary and research_data
+        For text: dict with pdf_path for immediate PDF sending
     """
     try:
-        logger.info(f"🔍 Processing hybrid response for {name}: {message[:100]}...")
+        logger.info(f"🔍 Processing {'TEXT' if message_source == 'text' else 'VOICE'} query for {name}: {message[:100]}...")
         
         if not LAWYAAR_AVAILABLE:
             logger.error("❌ LawYaar legal research system not available")
             return ("I apologize, but the legal research system is currently unavailable. "
                    "Please try again later.")
         
-        # ✨ PRE-FILTER: Classify message type (LEGAL, CHITCHAT, IRRELEVANT, or PDF_REQUEST)
+        # ✨ INTELLIGENT ROUTING WITH PDF REQUEST PRIORITY
         
-        # First check if this is a response to PDF offer
+        # STEP 0: CHECK FOR PDF REQUEST FIRST (before classification)
+        # This prevents "yes", "ok" from being classified as chitchat when user is responding to PDF offer
         chat_history = check_if_chat_exists(wa_id)
         if chat_history and len(chat_history) > 0:
             last_bot_message = None
@@ -347,9 +402,16 @@ def generate_response(message, wa_id, name):
                     last_bot_message = msg
                     break
             
-            # Check if user is responding to PDF offer
-            if last_bot_message and _is_pdf_request(message):
-                logger.info(f"📄 PDF request detected from {name}")
+            # Check if there's a PENDING PDF offer
+            has_pending_pdf = (last_bot_message and 
+                             last_bot_message.get('research_data', {}).get('type') == 'pending_pdf_request')
+            
+            # If pending PDF exists AND message is short (likely a response), check for affirmative FIRST
+            message_word_count = len(message.split())
+            is_short_response = message_word_count <= 5
+            
+            if has_pending_pdf and is_short_response and _is_pdf_request(message):
+                logger.info(f"📄 PDF request detected BEFORE classification (short affirmative after legal query)")
                 research_data = last_bot_message.get('research_data', {})
                 
                 # Get language before PDF generation
@@ -357,6 +419,19 @@ def generate_response(message, wa_id, name):
                 
                 # Generate PDF
                 pdf_path = generate_pdf_report(wa_id, name, research_data)
+                
+                # ✅ CLEAR PENDING PDF STATE - Mark as fulfilled
+                try:
+                    research_data['type'] = 'pdf_fulfilled'  # Change state
+                    # Update chat history to mark PDF as sent
+                    for msg in reversed(chat_history):
+                        if msg.get('role') == 'model' and 'research_data' in msg:
+                            msg['research_data']['type'] = 'pdf_fulfilled'
+                            break
+                    store_chat(wa_id, chat_history)
+                    logger.info("✅ Marked PDF state as fulfilled")
+                except Exception as e:
+                    logger.warning(f"⚠️ Could not update PDF state: {e}")
                 
                 if pdf_path:
                     if detected_lang == 'ur':
@@ -377,18 +452,68 @@ def generate_response(message, wa_id, name):
                     else:
                         return "I apologize! There was an error generating the PDF report. Please try again."
         
-        # Now proceed with normal classification
+        # STEP 1: Classify the message (LEGAL, CHITCHAT, or IRRELEVANT)
         message_type = _is_legal_query(message)
+        logger.info(f"📊 Message classified as: {message_type}")
         
+        # STEP 2: Handle NON-LEGAL messages immediately (don't check for PDF)
+        # ✅ IMPORTANT: Non-legal messages also invalidate any pending PDF offers
         if message_type == "CHITCHAT":
             logger.info(f"💬 Chitchat detected: {message[:50]}... Responding conversationally")
+            
+            # Invalidate any pending PDF offer
+            chat_history = check_if_chat_exists(wa_id)
+            if chat_history and len(chat_history) > 0:
+                try:
+                    for msg in reversed(chat_history):
+                        if msg.get('role') == 'model' and 'research_data' in msg:
+                            if msg['research_data'].get('type') == 'pending_pdf_request':
+                                msg['research_data']['type'] = 'pdf_expired'
+                                logger.info("🔄 Invalidated pending PDF offer - user sent chitchat")
+                            break
+                    store_chat(wa_id, chat_history)
+                except Exception as e:
+                    logger.warning(f"⚠️ Could not invalidate PDF state: {e}")
+            
             return _handle_chitchat(message, wa_id, name)
+            
         elif message_type == "IRRELEVANT":
             logger.info(f"🚫 Irrelevant query detected: {message[:50]}... Politely declining")
+            
+            # Invalidate any pending PDF offer
+            chat_history = check_if_chat_exists(wa_id)
+            if chat_history and len(chat_history) > 0:
+                try:
+                    for msg in reversed(chat_history):
+                        if msg.get('role') == 'model' and 'research_data' in msg:
+                            if msg['research_data'].get('type') == 'pending_pdf_request':
+                                msg['research_data']['type'] = 'pdf_expired'
+                                logger.info("🔄 Invalidated pending PDF offer - user sent irrelevant query")
+                            break
+                    store_chat(wa_id, chat_history)
+                except Exception as e:
+                    logger.warning(f"⚠️ Could not invalidate PDF state: {e}")
+            
             return _handle_irrelevant(message, wa_id, name)
         
-        # message_type == "LEGAL" - proceed with legal research
-        logger.info(f"⚖️ Legal query detected: {message[:50]}... Running research pipeline")
+        
+        # STEP 4: Process as NEW LEGAL QUERY (message_type == "LEGAL")
+        # ✅ IMPORTANT: Automatically invalidate any old pending PDF offers
+        # User has moved on to a new query, so old offer is no longer relevant
+        if chat_history and len(chat_history) > 0:
+            try:
+                for msg in reversed(chat_history):
+                    if msg.get('role') == 'model' and 'research_data' in msg:
+                        old_state = msg['research_data'].get('type')
+                        if old_state == 'pending_pdf_request':
+                            msg['research_data']['type'] = 'pdf_expired'  # Mark as expired
+                            logger.info("🔄 Invalidated old pending PDF offer - user moved to new query")
+                        break
+                store_chat(wa_id, chat_history)
+            except Exception as e:
+                logger.warning(f"⚠️ Could not invalidate old PDF state: {e}")
+        
+        logger.info(f"⚖️ Processing new legal query: {message[:50]}...")
         
         # Run full legal research pipeline with metadata
         service = get_lawyaar_service()
@@ -460,8 +585,10 @@ YOUR TASK: Create a DENSE, COMPREHENSIVE VOICE SUMMARY that:
 - Explains the legal principles, procedures, and rights clearly
 - Uses conversational tone suitable for audio (as if talking to a friend)
 - NO case numbers, NO citations, NO metadata (user can't see/read them in voice)
+- NO bullet points, NO special formatting (this is for AUDIO, not text!)
 - Keep it focused but comprehensive (400-500 words for voice)
 - Use examples and analogies when helpful
+- Structure as natural paragraphs with clear flow
 - In {'Urdu' if detected_language == 'ur' else 'English'}
 
 USER'S QUESTION: {message}
@@ -469,7 +596,7 @@ USER'S QUESTION: {message}
 DETAILED LEGAL RESEARCH WITH ALL FINDINGS:
 {full_legal_response}
 
-IMPORTANT: Synthesize ALL the key legal information into a natural spoken explanation. Imagine you're explaining to someone who cannot read. Be thorough but natural.
+IMPORTANT: Synthesize ALL the key legal information into a natural spoken explanation. Imagine you're explaining to someone who cannot read. Be thorough but natural. Remember: this will be converted to AUDIO, so write as you would SPEAK, not as you would WRITE.
 
 VOICE SUMMARY:"""
         
@@ -486,25 +613,119 @@ VOICE SUMMARY:"""
             else:
                 voice_summary = "Here's what I found from the legal research:"
         
-        # Add PDF offer at the end of voice summary
-        if detected_language == 'ur':
-            pdf_offer = f"\n\nاگر آپ مکمل تفصیلی رپورٹ چاہتے ہیں جس میں تمام کیسز کی تفصیلات اور لنکس ہوں، تو براہ کرم 'ہاں' یا 'جی' بھیجیں۔ میں آپ کو ایک تفصیلی PDF دستاویز بھیج دوں گا۔"
-        else:
-            pdf_offer = f"\n\nIf you'd like a detailed report with all case citations and links, please reply with 'yes' or 'haan'. I'll send you a comprehensive PDF document."
-        
-        voice_summary_with_offer = voice_summary + pdf_offer
-        
-        # Create friendly summary for backward compatibility (if needed)
-        friendly_summary = voice_summary
-        
-        # Store research data and prepare for parallel PDF generation
-        # PDF will be generated in background while user listens to voice
-        try:
-            chat_history = check_if_chat_exists(wa_id)
-            if not chat_history:
-                chat_history = []
+        # ✅ DIFFERENT HANDLING FOR TEXT vs VOICE
+        if message_source == 'text':
+            # For TEXT queries: Send SUMMARY + PDF immediately
+            logger.info(f"📄 TEXT query detected - generating executive summary + PDF")
             
-            # Store the full research data in chat context
+            # Create EXECUTIVE SUMMARY (NO metadata - just legal findings)
+            text_summary_prompt = f"""You are a professional legal assistant providing an executive summary to a literate user via WhatsApp.
+
+YOUR TASK: Create a DENSE, EXECUTIVE SUMMARY that:
+- DIRECTLY ANSWERS the user's legal question with the key findings
+- Focuses ONLY on legal principles, rights, procedures, and outcomes
+- Synthesizes findings from multiple cases into coherent principles
+- NO case names, NO judge names, NO dates, NO citation numbers
+- NO metadata - save all that for the detailed PDF
+- Uses bullet points for clarity
+- Professional but accessible language
+- In {'Urdu' if detected_language == 'ur' else 'English'}
+- Keep it concise and actionable (200-300 words)
+
+USER'S QUESTION: {message}
+
+DETAILED LEGAL RESEARCH WITH ALL FINDINGS:
+{full_legal_response}
+
+DOCUMENT COUNT: {doc_count} relevant cases analyzed
+
+CRITICAL RULES:
+- Extract ONLY the legal principles and findings
+- DO NOT mention case names (e.g., "Ali v. Hassan") 
+- DO NOT mention judges, courts, or dates
+- DO NOT include citations or reference numbers
+- Focus on WHAT the law says, not WHERE it comes from
+- End with a brief note that detailed citations are in the attached PDF
+
+EXECUTIVE SUMMARY:"""
+            
+            try:
+                text_summary = call_llm(text_summary_prompt).strip()
+                logger.info(f"✅ Generated executive summary: {len(text_summary)} chars")
+            except Exception as e:
+                logger.error(f"⚠️ LLM API error generating text summary: {e}")
+                # Fallback: Use voice summary
+                text_summary = voice_summary
+            
+            # Store research data for chat history
+            research_context = {
+                "type": "pdf_fulfilled",  # Mark as already fulfilled
+                "query": message,
+                "full_legal_response": full_legal_response,
+                "pdf_links": pdf_links,
+                "doc_count": doc_count,
+                "detected_language": detected_language,
+                "text_summary": text_summary
+            }
+            
+            # Generate PDF immediately
+            pdf_path = generate_pdf_report(wa_id, name, research_context)
+            
+            # Store in chat history
+            try:
+                chat_history = check_if_chat_exists(wa_id)
+                if not chat_history:
+                    chat_history = []
+                
+                chat_history.append({"role": "user", "parts": [message]})
+                chat_history.append({
+                    "role": "model", 
+                    "parts": [text_summary],
+                    "research_data": research_context
+                })
+                store_chat(wa_id, chat_history)
+            except Exception as e:
+                logger.error(f"Error storing chat history: {e}")
+            
+            # Return BOTH summary AND PDF
+            if pdf_path:
+                if detected_language == 'ur':
+                    pdf_message = f"📄 یہاں {doc_count} متعلقہ کیسز کے ساتھ تفصیلی PDF رپورٹ ہے۔"
+                    return {
+                        "type": "text_with_pdf",
+                        "text_summary": text_summary,
+                        "pdf_path": pdf_path,
+                        "pdf_message": pdf_message
+                    }
+                else:
+                    pdf_message = f"📄 Here's the detailed PDF report with {doc_count} relevant cases."
+                    return {
+                        "type": "text_with_pdf",
+                        "text_summary": text_summary,
+                        "pdf_path": pdf_path,
+                        "pdf_message": pdf_message
+                    }
+            else:
+                # PDF generation failed - send text summary only
+                logger.error("❌ PDF generation failed for text query - sending summary only")
+                if detected_language == 'ur':
+                    return text_summary + f"\n\n⚠️ معذرت! PDF بنانے میں خرابی ہوئی۔"
+                else:
+                    return text_summary + f"\n\n⚠️ Sorry! PDF generation failed."
+        
+        else:
+            # For VOICE queries: Send voice summary + PDF OFFER (existing flow)
+            logger.info(f"🎤 VOICE query detected - sending summary with PDF offer")
+            
+            # Add PDF offer at the end of voice summary
+            if detected_language == 'ur':
+                pdf_offer = f"\n\nاگر آپ مکمل تفصیلی رپورٹ چاہتے ہیں جس میں تمام کیسز کی تفصیلات اور لنکس ہوں، تو براہ کرم 'ہاں' یا 'جی' بھیجیں۔ میں آپ کو ایک تفصیلی PDF دستاویز بھیج دوں گا۔"
+            else:
+                pdf_offer = f"\n\nIf you'd like a detailed report with all case citations and links, please reply with 'yes' or 'haan'. I'll send you a comprehensive PDF document."
+            
+            voice_summary_with_offer = voice_summary + pdf_offer
+            
+            # Store research data for later PDF generation
             research_context = {
                 "type": "pending_pdf_request",
                 "query": message,
@@ -515,28 +736,31 @@ VOICE SUMMARY:"""
                 "voice_summary": voice_summary
             }
             
-            # Add to chat history
-            chat_history.append({"role": "user", "parts": [message]})
-            chat_history.append({
-                "role": "model", 
-                "parts": [voice_summary],  # Just voice summary, no PDF offer here
-                "research_data": research_context  # Store for PDF generation
-            })
-            store_chat(wa_id, chat_history)
+            # Store in chat history
+            try:
+                chat_history = check_if_chat_exists(wa_id)
+                if not chat_history:
+                    chat_history = []
+                
+                chat_history.append({"role": "user", "parts": [message]})
+                chat_history.append({
+                    "role": "model", 
+                    "parts": [voice_summary],
+                    "research_data": research_context
+                })
+                store_chat(wa_id, chat_history)
+            except Exception as e:
+                logger.error(f"Error storing chat history: {e}")
             
-        except Exception as e:
-            logger.error(f"Error storing research context: {e}")
-        
-        # Return voice summary WITHOUT PDF offer (offer will be sent as separate text)
-        # Also return research data for parallel PDF generation
-        logger.info(f"✅ Voice-optimized summary complete: {len(voice_summary)} characters")
-        
-        return {
-            "type": "voice_with_pdf_prep",
-            "voice_summary": voice_summary,
-            "research_data": research_context,
-            "detected_language": detected_language
-        }
+            # Return voice response with PDF prep data
+            logger.info(f"✅ Voice-optimized summary complete: {len(voice_summary)} characters")
+            
+            return {
+                "type": "voice_with_pdf_prep",
+                "voice_summary": voice_summary,
+                "research_data": research_context,
+                "detected_language": detected_language
+            }
         
     except Exception as e:
         logger.error(f"❌ Critical error in generate_response: {e}", exc_info=True)
@@ -585,6 +809,7 @@ def _detect_language(text: str) -> str:
 def _is_pdf_request(message: str) -> bool:
     """
     Check if user is requesting the detailed PDF report.
+    Uses LLM for intelligent interpretation instead of keyword matching.
     
     Args:
         message: User's message
@@ -594,33 +819,114 @@ def _is_pdf_request(message: str) -> bool:
     """
     message_lower = message.lower().strip()
     
-    # English affirmatives
-    english_yes = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'send', 'please', 'want', 
-                   'give', 'show', 'detailed', 'full', 'complete', 'pdf', 'report', 'document']
+    # If message is longer than 10 words, it's likely a new query, not a PDF request
+    if len(message.split()) > 10:
+        logger.info(f"📝 Message too long ({len(message.split())} words) - likely not a PDF request")
+        return False
     
-    # Urdu affirmatives (romanized and script)
-    urdu_yes = ['haan', 'haa', 'han', 'ji', 'jee', 'zaroor', 'zarur', 
-                'bhejo', 'bhej do', 'chahiye', 'چاہیے', 'ہاں', 'جی', 'ضرور', 'بھیجو']
-    
-    # Check if message contains any affirmative
-    for word in english_yes + urdu_yes:
-        if word in message_lower:
+    # ✅ USE LLM FOR INTELLIGENT CLASSIFICATION (No hardcoded keywords!)
+    try:
+        from utils.call_llm import call_llm
+        
+        classification_prompt = f"""You are analyzing a user's response to a PDF offer in a WhatsApp conversation.
+
+CONTEXT: The bot just offered to send a detailed PDF report and asked "Would you like a PDF report?"
+
+USER'S RESPONSE: "{message}"
+
+TASK: Classify this response as either:
+- AFFIRMATIVE: User wants the PDF (says yes, agrees, requests it, etc.)
+- NOT_AFFIRMATIVE: User is asking a new question, declining, or making any other statement (NOT requesting the PDF)
+
+IMPORTANT RULES:
+1. If user clearly agrees (like "yes", "haan", "sure", "send it", "please", "ji"), classify as AFFIRMATIVE
+2. If user asks a NEW legal question (like "what about eviction?"), classify as NOT_AFFIRMATIVE
+3. If user sends a greeting or irrelevant message (like "hi", "hello"), classify as NOT_AFFIRMATIVE
+4. If user declines (like "no", "nahi", "later", "maybe later"), classify as NOT_AFFIRMATIVE
+5. Consider cultural context: Urdu/English mixed responses
+6. If unsure, classify as NOT_AFFIRMATIVE (safer to treat as new query)
+
+EXAMPLES:
+AFFIRMATIVE:
+- "yes" → AFFIRMATIVE
+- "haan" → AFFIRMATIVE
+- "han" → AFFIRMATIVE
+- "ji" → AFFIRMATIVE
+- "sure" → AFFIRMATIVE
+- "ok" → AFFIRMATIVE
+- "send it" → AFFIRMATIVE
+- "please send pdf" → AFFIRMATIVE
+- "ہاں" → AFFIRMATIVE
+- "جی" → AFFIRMATIVE
+- "ضرور" → AFFIRMATIVE
+
+NOT_AFFIRMATIVE:
+- "what about property law?" → NOT_AFFIRMATIVE
+- "can i evict a tenant?" → NOT_AFFIRMATIVE
+- "no" → NOT_AFFIRMATIVE
+- "nahi" → NOT_AFFIRMATIVE
+- "نہیں" → NOT_AFFIRMATIVE
+- "later" → NOT_AFFIRMATIVE
+- "maybe later" → NOT_AFFIRMATIVE
+- "hi" → NOT_AFFIRMATIVE
+- "hello" → NOT_AFFIRMATIVE
+
+Respond with ONLY one word: "AFFIRMATIVE" or "NOT_AFFIRMATIVE"
+
+CLASSIFICATION:"""
+
+        result = call_llm(classification_prompt).strip().upper()
+        
+        # Parse result
+        is_affirmative = "AFFIRMATIVE" in result and "NOT_AFFIRMATIVE" not in result
+        
+        if is_affirmative:
+            logger.info(f"🤖 LLM classified as AFFIRMATIVE: '{message[:50]}'")
+        else:
+            logger.info(f"✅ LLM classified as NOT_AFFIRMATIVE: '{message[:50]}'")
+        
+        return is_affirmative
+        
+    except Exception as e:
+        logger.error(f"❌ Error in LLM classification for affirmative: {e}")
+        
+        # ⚠️ FALLBACK: Keyword matching (only if LLM fails!)
+        logger.info("⚠️ Falling back to keyword-based affirmative detection")
+        
+        # Quick check for very obvious affirmatives
+        obvious_yes = ['yes', 'yeah', 'yep', 'haan', 'han', 'ji', 'ہاں', 'جی']
+        if message_lower in obvious_yes:
+            logger.info(f"⚠️ Fallback quick match: '{message_lower}'")
             return True
-    
-    # If message is very short (1-3 words) and doesn't contain negatives, assume yes
-    words = message_lower.split()
-    if len(words) <= 3:
-        negatives = ['no', 'nah', 'nope', 'dont', "don't", 'nahi', 'nhi', 'نہیں', 'نہ']
-        has_negative = any(neg in message_lower for neg in negatives)
-        if not has_negative:
-            return True
-    
-    return False
+        
+        # English affirmatives
+        english_yes = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'send', 'please']
+        
+        # Urdu affirmatives (romanized and script)
+        urdu_yes = ['haan', 'haa', 'han', 'ji', 'jee', 'zaroor', 'ہاں', 'جی', 'ضرور']
+        
+        words = message_lower.split()
+        
+        # Check if any affirmative word appears
+        for yes_word in english_yes + urdu_yes:
+            if yes_word in words:
+                logger.info(f"⚠️ Fallback keyword match: '{yes_word}'")
+                return True
+        
+        # If message is very short (1-2 words) and not negative, assume yes
+        if len(words) <= 2:
+            negatives = ['no', 'nah', 'nope', 'nahi', 'نہیں']
+            if not any(neg in words for neg in negatives):
+                logger.info(f"⚠️ Fallback: Short message without negatives")
+                return True
+        
+        return False
 
 
 def _is_pdf_rejection(message: str) -> bool:
     """
     Check if user is rejecting/declining the PDF offer.
+    Uses LLM for intelligent interpretation instead of keyword matching.
     
     Args:
         message: User's message
@@ -630,20 +936,99 @@ def _is_pdf_rejection(message: str) -> bool:
     """
     message_lower = message.lower().strip()
     
-    # English negatives
-    english_no = ['no', 'nah', 'nope', 'not', 'dont', "don't", 'never', 'nvm', 
-                  'skip', 'pass', 'later', 'maybe later']
+    # If message is longer than 10 words, it's likely a new query, not a rejection
+    # This avoids unnecessary LLM calls for obvious legal queries
+    if len(message.split()) > 10:
+        logger.info(f"📝 Message too long ({len(message.split())} words) - likely not a rejection")
+        return False
     
-    # Urdu negatives (romanized and script)
-    urdu_no = ['nahi', 'nhi', 'na', 'naa', 'zaroorat nahi', 'baad mein',
-               'نہیں', 'نہ', 'نا', 'ضرورت نہیں', 'بعد میں']
-    
-    # Check if message contains any negative
-    for word in english_no + urdu_no:
-        if word in message_lower:
+    # ✅ USE LLM FOR INTELLIGENT CLASSIFICATION (No hardcoded keywords!)
+    try:
+        from utils.call_llm import call_llm
+        
+        classification_prompt = f"""You are analyzing a user's response to a PDF offer in a WhatsApp conversation.
+
+CONTEXT: The bot just offered to send a detailed PDF report and asked "Would you like a PDF report?"
+
+USER'S RESPONSE: "{message}"
+
+TASK: Classify this response as either:
+- REJECTION: User clearly doesn't want the PDF (says no, declines, not interested, maybe later, skip, etc.)
+- NOT_REJECTION: User is asking a new question, greeting, or making any other statement (NOT declining the PDF)
+
+IMPORTANT RULES:
+1. If user asks a NEW legal question (like "what about eviction?" or "can i evict a tenant?"), classify as NOT_REJECTION
+2. If user sends a greeting (like "hi", "hello", "thanks", "thank you"), classify as NOT_REJECTION  
+3. If user clearly declines (like "no", "nahi", "not now", "maybe later", "skip it"), classify as REJECTION
+4. Consider cultural context: Urdu/English mixed responses
+5. If unsure, classify as NOT_REJECTION (safer to process as new query than miss it)
+
+EXAMPLES:
+REJECTION:
+- "no" → REJECTION
+- "nah" → REJECTION
+- "nope" → REJECTION
+- "nahi" → REJECTION
+- "نہیں" → REJECTION
+- "not now" → REJECTION
+- "maybe later" → REJECTION
+- "not interested" → REJECTION
+- "skip it" → REJECTION
+- "pass" → REJECTION
+
+NOT_REJECTION:
+- "what about property law?" → NOT_REJECTION
+- "can i evict a tenant?" → NOT_REJECTION
+- "on what grounds can i evict?" → NOT_REJECTION
+- "hi" → NOT_REJECTION
+- "hello" → NOT_REJECTION
+- "thanks" → NOT_REJECTION
+- "thank you" → NOT_REJECTION
+
+Respond with ONLY one word: "REJECTION" or "NOT_REJECTION"
+
+CLASSIFICATION:"""
+
+        result = call_llm(classification_prompt).strip().upper()
+        
+        # Parse result
+        is_rejection = "REJECTION" in result and "NOT_REJECTION" not in result
+        
+        if is_rejection:
+            logger.info(f"🤖 LLM classified as REJECTION: '{message[:50]}'")
+        else:
+            logger.info(f"✅ LLM classified as NOT_REJECTION: '{message[:50]}'")
+        
+        return is_rejection
+        
+    except Exception as e:
+        logger.error(f"❌ Error in LLM classification for rejection: {e}")
+        
+        # ⚠️ FALLBACK: Word boundary matching (only if LLM fails!)
+        logger.info("⚠️ Falling back to keyword-based rejection detection")
+        
+        # Quick check for very obvious rejections
+        obvious_no = ['no', 'nah', 'nope', 'nahi', 'نہیں']
+        if message_lower in obvious_no:
+            logger.info(f"⚠️ Fallback quick match: '{message_lower}'")
             return True
-    
-    return False
+        
+        # English negatives
+        english_no = ['no', 'nah', 'nope', 'not', 'dont', "don't", 'never', 'nvm', 
+                      'skip', 'pass', 'later']
+        
+        # Urdu negatives (romanized and script)
+        urdu_no = ['nahi', 'nhi', 'na', 'نہیں', 'نہ']
+        
+        words = message_lower.split()
+        
+        # Check if any negative word appears as a COMPLETE WORD
+        for neg_word in english_no + urdu_no:
+            if neg_word in words:
+                logger.info(f"⚠️ Fallback keyword match: '{neg_word}'")
+                return True
+        
+        return False
 
 
 def _handle_pdf_rejection(wa_id: str, detected_language: str) -> str:
@@ -657,16 +1042,18 @@ def _handle_pdf_rejection(wa_id: str, detected_language: str) -> str:
     Returns:
         str: Friendly acknowledgment message
     """
-    # Update chat history to mark PDF as declined
+    # ✅ CLEAR PENDING PDF STATE - Mark as declined
     try:
         chat_history = check_if_chat_exists(wa_id)
         if chat_history and len(chat_history) > 0:
             # Find and update the last message with pending PDF
             for msg in reversed(chat_history):
                 if msg.get('role') == 'model' and 'research_data' in msg:
-                    msg['research_data']['pdf_declined'] = True
+                    # Change state from pending to declined
+                    msg['research_data']['type'] = 'pdf_declined'
                     break
             store_chat(wa_id, chat_history)
+            logger.info("✅ Marked PDF state as declined")
     except Exception as e:
         logger.error(f"Error updating PDF rejection status: {e}")
     
