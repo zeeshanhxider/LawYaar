@@ -178,11 +178,67 @@ class InitialRetrievalNode(Node):
         vector_db = shared["vector_db"]
         vdb_config = get_vector_db_config()
         
+        # Add comprehensive logging for ChromaDB retrieval
+        logger.info("="*80)
+        logger.info("CHROMADB RETRIEVAL CHECK")
+        logger.info("="*80)
+        logger.info(f"Query being searched: {user_query}")
+        logger.info(f"Max results to retrieve: {vdb_config.MAX_RESULTS}")
+        logger.info(f"Similarity threshold: {vdb_config.SIMILARITY_THRESHOLD}")
+        
+        # Check if ChromaDB collection exists and has documents
+        try:
+            collection = vector_db.collection
+            if collection:
+                count = collection.count()
+                logger.info(f"✅ ChromaDB collection found: {vdb_config.COLLECTION_NAME}")
+                logger.info(f"✅ Total documents in collection: {count}")
+                
+                if count == 0:
+                    logger.error("❌ CRITICAL: ChromaDB collection is EMPTY! No documents indexed.")
+                    logger.error("Run 'python -m src.main --index' to populate the database")
+                else:
+                    logger.info(f"✅ ChromaDB is populated with {count} document chunks")
+            else:
+                logger.error("❌ CRITICAL: ChromaDB collection is None!")
+        except Exception as e:
+            logger.error(f"❌ Error checking ChromaDB collection: {e}")
+        
+        logger.info("Executing vector similarity search...")
+        
         retrieved_chunks = vector_db.search(
             query=user_query,
             n_results=vdb_config.MAX_RESULTS,
             similarity_threshold=vdb_config.SIMILARITY_THRESHOLD
         )
+        
+        logger.info(f"✅ Retrieved {len(retrieved_chunks)} chunks from ChromaDB")
+        
+        if len(retrieved_chunks) == 0:
+            logger.warning("⚠️ NO CHUNKS RETRIEVED! Possible reasons:")
+            logger.warning("  1. ChromaDB is empty (not indexed)")
+            logger.warning("  2. Query doesn't match any documents")
+            logger.warning("  3. Similarity threshold too high")
+            logger.warning("  4. Embedding model mismatch")
+        else:
+            logger.info(f"✅ Successfully found {len(retrieved_chunks)} matching chunks")
+            # Log top 3 matches
+            logger.info("Top 3 matching chunks:")
+            for i, chunk in enumerate(retrieved_chunks[:3], 1):
+                metadata = chunk.get('metadata', {})
+                distance = chunk.get('distance', 'N/A')
+                file_name = metadata.get('file_name', 'Unknown')
+                chunk_text = chunk.get('document', '')[:100]
+                logger.info(f"  {i}. File: {file_name}")
+                # Fix the format string - calculate similarity first
+                if isinstance(distance, float):
+                    similarity = 1 - distance
+                    logger.info(f"     Similarity: {similarity:.4f}")
+                else:
+                    logger.info(f"     Similarity: N/A")
+                logger.info(f"     Preview: {chunk_text}...")
+        
+        logger.info("="*80)
         
         shared["retrieved_chunks"] = retrieved_chunks
         shared["retrieval_count"] = len(retrieved_chunks)

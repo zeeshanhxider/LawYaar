@@ -336,7 +336,48 @@ def generate_response(message, wa_id, name):
             return ("I apologize, but the legal research system is currently unavailable. "
                    "Please try again later.")
         
-        # ✨ PRE-FILTER: Classify message type (LEGAL, CHITCHAT, or IRRELEVANT)
+        # ✨ PRE-FILTER: Classify message type (LEGAL, CHITCHAT, IRRELEVANT, or PDF_REQUEST)
+        
+        # First check if this is a response to PDF offer
+        chat_history = check_if_chat_exists(wa_id)
+        if chat_history and len(chat_history) > 0:
+            last_bot_message = None
+            for msg in reversed(chat_history):
+                if msg.get('role') == 'model' and 'research_data' in msg:
+                    last_bot_message = msg
+                    break
+            
+            # Check if user is responding to PDF offer
+            if last_bot_message and _is_pdf_request(message):
+                logger.info(f"📄 PDF request detected from {name}")
+                research_data = last_bot_message.get('research_data', {})
+                
+                # Get language before PDF generation
+                detected_lang = research_data.get('detected_language', 'en')
+                
+                # Generate PDF
+                pdf_path = generate_pdf_report(wa_id, name, research_data)
+                
+                if pdf_path:
+                    if detected_lang == 'ur':
+                        return {
+                            "type": "pdf_response",
+                            "pdf_path": pdf_path,
+                            "message": "بہترین! میں آپ کے لیے تفصیلی رپورٹ تیار کر رہا ہوں۔ یہ رپورٹ تمام کیسز کی تفصیلات، حوالہ جات اور لنکس پر مشتمل ہے۔ 📄"
+                        }
+                    else:
+                        return {
+                            "type": "pdf_response",
+                            "pdf_path": pdf_path,
+                            "message": "Great! I'm preparing your detailed report with all case citations and links. 📄"
+                        }
+                else:
+                    if detected_lang == 'ur':
+                        return "معذرت! PDF رپورٹ بنانے میں خرابی ہوئی۔ براہ کرم دوبارہ کوشش کریں۔"
+                    else:
+                        return "I apologize! There was an error generating the PDF report. Please try again."
+        
+        # Now proceed with normal classification
         message_type = _is_legal_query(message)
         
         if message_type == "CHITCHAT":
@@ -382,6 +423,15 @@ def generate_response(message, wa_id, name):
             logger.error(f"Error running async research: {e}")
             raise
         
+        # Safety check: ensure research_data is a dict
+        if not isinstance(research_data, dict):
+            logger.error(f"❌ Expected dict from generate_legal_response, got {type(research_data)}: {research_data}")
+            # If it's a string error message, return it
+            if isinstance(research_data, str):
+                return research_data
+            # Otherwise return generic error
+            return "I apologize, but I encountered an error while researching your legal question. Please try again."
+        
         # Extract research components
         full_legal_response = research_data.get("full_legal_response", "")
         pdf_links = research_data.get("pdf_links", [])
@@ -399,79 +449,94 @@ def generate_response(message, wa_id, name):
             "apologize" in full_legal_response.lower() and "could not find" in full_legal_response.lower()
         )
         
-        # Create friendly summary using LLM
+        # Create VOICE-OPTIMIZED dense summary (for illiterate users - no citations)
         from utils.call_llm import call_llm
         
-        summary_prompt = f"""You are a friendly legal assistant on WhatsApp. You just completed a detailed legal research.
-        
-YOUR TASK: Create a SHORT, FRIENDLY, EASY-TO-UNDERSTAND summary (2-3 paragraphs) that:
-- Directly answers the user's question in simple language
-- Highlights the most important points
-- Uses a conversational, helpful tone
-- Keeps it brief (this is WhatsApp!)
-- Uses emojis sparingly to be personable 😊
+        voice_summary_prompt = f"""You are a friendly legal assistant helping an illiterate user via WhatsApp voice message.
+
+YOUR TASK: Create a DENSE, COMPREHENSIVE VOICE SUMMARY that:
+- DIRECTLY ANSWERS the user's legal question in simple, spoken language
+- Includes ALL important legal information from the research
+- Explains the legal principles, procedures, and rights clearly
+- Uses conversational tone suitable for audio (as if talking to a friend)
+- NO case numbers, NO citations, NO metadata (user can't see/read them in voice)
+- Keep it focused but comprehensive (400-500 words for voice)
+- Use examples and analogies when helpful
+- In {'Urdu' if detected_language == 'ur' else 'English'}
 
 USER'S QUESTION: {message}
 
-DETAILED LEGAL RESEARCH:
-{full_legal_response[:2000]}...
+DETAILED LEGAL RESEARCH WITH ALL FINDINGS:
+{full_legal_response}
 
-Write a friendly summary in {'Urdu' if detected_language == 'ur' else 'English'}:"""
+IMPORTANT: Synthesize ALL the key legal information into a natural spoken explanation. Imagine you're explaining to someone who cannot read. Be thorough but natural.
+
+VOICE SUMMARY:"""
         
         try:
-            friendly_summary = call_llm(summary_prompt).strip()
+            voice_summary = call_llm(voice_summary_prompt).strip()
         except Exception as e:
-            logger.error(f"⚠️ LLM API error generating summary: {e}")
+            logger.error(f"⚠️ LLM API error generating voice summary: {e}")
             # Fallback: Use first two paragraphs of legal response
             paragraphs = full_legal_response.split('\n\n')
             if len(paragraphs) >= 2:
-                friendly_summary = '\n\n'.join(paragraphs[:2])
+                voice_summary = '\n\n'.join(paragraphs[:2])
             elif paragraphs:
-                friendly_summary = paragraphs[0]
+                voice_summary = paragraphs[0]
             else:
-                friendly_summary = "Here's what I found from the legal research:"
+                voice_summary = "Here's what I found from the legal research:"
         
-        # Build hybrid response starting with friendly summary
-        hybrid_response = f"{friendly_summary}"
+        # Add PDF offer at the end of voice summary
+        if detected_language == 'ur':
+            pdf_offer = f"\n\nاگر آپ مکمل تفصیلی رپورٹ چاہتے ہیں جس میں تمام کیسز کی تفصیلات اور لنکس ہوں، تو براہ کرم 'ہاں' یا 'جی' بھیجیں۔ میں آپ کو ایک تفصیلی PDF دستاویز بھیج دوں گا۔"
+        else:
+            pdf_offer = f"\n\nIf you'd like a detailed report with all case citations and links, please reply with 'yes' or 'haan'. I'll send you a comprehensive PDF document."
         
-        # Only add detailed analysis section if cases were found
-        if not no_cases_found:
-            hybrid_response += "\n\n"
-            hybrid_response += f"━━━━━━━━━━━━━━━━━━━━\n"
-            hybrid_response += f"⚖️ *Detailed Legal Analysis*\n"
-            hybrid_response += f"━━━━━━━━━━━━━━━━━━━━\n\n"
+        voice_summary_with_offer = voice_summary + pdf_offer
+        
+        # Create friendly summary for backward compatibility (if needed)
+        friendly_summary = voice_summary
+        
+        # Store research data and prepare for parallel PDF generation
+        # PDF will be generated in background while user listens to voice
+        try:
+            chat_history = check_if_chat_exists(wa_id)
+            if not chat_history:
+                chat_history = []
             
-            # Add truncated legal research (limit for WhatsApp)
-            max_legal_length = 2000
-            if len(full_legal_response) > max_legal_length:
-                truncated_legal = full_legal_response[:max_legal_length]
-                last_period = truncated_legal.rfind('.')
-                if last_period > max_legal_length - 200:
-                    truncated_legal = truncated_legal[:last_period + 1]
-                hybrid_response += f"{truncated_legal}\n\n_[Full analysis truncated]_"
-            else:
-                hybrid_response += full_legal_response
-        
-        # Add PDF links (only if cases were found)
-        if pdf_links and len(pdf_links) > 0 and not no_cases_found:
-            hybrid_response += "\n\n━━━━━━━━━━━━━━━━━━━━\n"
-            hybrid_response += "📄 *Full Case Documents*\n"
-            hybrid_response += "━━━━━━━━━━━━━━━━━━━━\n"
-            for i, pdf_info in enumerate(pdf_links[:5], 1):
-                case_no = pdf_info.get('case_no', 'Case')
-                url = pdf_info.get('url', '')
-                if url:
-                    hybrid_response += f"{i}. {case_no}\n   {url}\n\n"
+            # Store the full research data in chat context
+            research_context = {
+                "type": "pending_pdf_request",
+                "query": message,
+                "full_legal_response": full_legal_response,
+                "pdf_links": pdf_links,
+                "doc_count": doc_count,
+                "detected_language": detected_language,
+                "voice_summary": voice_summary
+            }
             
-            if len(pdf_links) > 5:
-                hybrid_response += f"_Plus {len(pdf_links) - 5} more documents_\n"
+            # Add to chat history
+            chat_history.append({"role": "user", "parts": [message]})
+            chat_history.append({
+                "role": "model", 
+                "parts": [voice_summary],  # Just voice summary, no PDF offer here
+                "research_data": research_context  # Store for PDF generation
+            })
+            store_chat(wa_id, chat_history)
+            
+        except Exception as e:
+            logger.error(f"Error storing research context: {e}")
         
-        # Add footer (only if cases were found)
-        if not no_cases_found and doc_count > 0:
-            hybrid_response += f"\n_Analyzed {doc_count} legal cases_"
+        # Return voice summary WITHOUT PDF offer (offer will be sent as separate text)
+        # Also return research data for parallel PDF generation
+        logger.info(f"✅ Voice-optimized summary complete: {len(voice_summary)} characters")
         
-        logger.info(f"✅ Hybrid response complete: {len(hybrid_response)} characters")
-        return hybrid_response
+        return {
+            "type": "voice_with_pdf_prep",
+            "voice_summary": voice_summary,
+            "research_data": research_context,
+            "detected_language": detected_language
+        }
         
     except Exception as e:
         logger.error(f"❌ Critical error in generate_response: {e}", exc_info=True)
@@ -515,6 +580,283 @@ def _detect_language(text: str) -> str:
     if len(text) > 0 and urdu_arabic_chars > len(text) * 0.2:
         return 'ur'
     return 'en'
+
+
+def _is_pdf_request(message: str) -> bool:
+    """
+    Check if user is requesting the detailed PDF report.
+    
+    Args:
+        message: User's message
+        
+    Returns:
+        bool: True if user wants PDF, False otherwise
+    """
+    message_lower = message.lower().strip()
+    
+    # English affirmatives
+    english_yes = ['yes', 'yeah', 'yep', 'sure', 'ok', 'okay', 'send', 'please', 'want', 
+                   'give', 'show', 'detailed', 'full', 'complete', 'pdf', 'report', 'document']
+    
+    # Urdu affirmatives (romanized and script)
+    urdu_yes = ['haan', 'haa', 'han', 'ji', 'jee', 'zaroor', 'zarur', 
+                'bhejo', 'bhej do', 'chahiye', 'چاہیے', 'ہاں', 'جی', 'ضرور', 'بھیجو']
+    
+    # Check if message contains any affirmative
+    for word in english_yes + urdu_yes:
+        if word in message_lower:
+            return True
+    
+    # If message is very short (1-3 words) and doesn't contain negatives, assume yes
+    words = message_lower.split()
+    if len(words) <= 3:
+        negatives = ['no', 'nah', 'nope', 'dont', "don't", 'nahi', 'nhi', 'نہیں', 'نہ']
+        has_negative = any(neg in message_lower for neg in negatives)
+        if not has_negative:
+            return True
+    
+    return False
+
+
+def _is_pdf_rejection(message: str) -> bool:
+    """
+    Check if user is rejecting/declining the PDF offer.
+    
+    Args:
+        message: User's message
+        
+    Returns:
+        bool: True if user doesn't want PDF, False otherwise
+    """
+    message_lower = message.lower().strip()
+    
+    # English negatives
+    english_no = ['no', 'nah', 'nope', 'not', 'dont', "don't", 'never', 'nvm', 
+                  'skip', 'pass', 'later', 'maybe later']
+    
+    # Urdu negatives (romanized and script)
+    urdu_no = ['nahi', 'nhi', 'na', 'naa', 'zaroorat nahi', 'baad mein',
+               'نہیں', 'نہ', 'نا', 'ضرورت نہیں', 'بعد میں']
+    
+    # Check if message contains any negative
+    for word in english_no + urdu_no:
+        if word in message_lower:
+            return True
+    
+    return False
+
+
+def _handle_pdf_rejection(wa_id: str, detected_language: str) -> str:
+    """
+    Handle when user declines the PDF offer.
+    
+    Args:
+        wa_id: WhatsApp user ID
+        detected_language: Language of the conversation
+        
+    Returns:
+        str: Friendly acknowledgment message
+    """
+    # Update chat history to mark PDF as declined
+    try:
+        chat_history = check_if_chat_exists(wa_id)
+        if chat_history and len(chat_history) > 0:
+            # Find and update the last message with pending PDF
+            for msg in reversed(chat_history):
+                if msg.get('role') == 'model' and 'research_data' in msg:
+                    msg['research_data']['pdf_declined'] = True
+                    break
+            store_chat(wa_id, chat_history)
+    except Exception as e:
+        logger.error(f"Error updating PDF rejection status: {e}")
+    
+    # Return friendly message
+    if detected_language == 'ur':
+        return (
+            "ٹھیک ہے، کوئی بات نہیں! 😊\n\n"
+            "اگر آپ کو کوئی اور قانونی سوال ہو تو بے جھجھک پوچھیں۔ "
+            "میں یہاں آپ کی مدد کے لیے ہوں! ⚖️"
+        )
+    else:
+        return (
+            "No problem at all! 😊\n\n"
+            "If you have any other legal questions, feel free to ask. "
+            "I'm here to help! ⚖️"
+        )
+
+
+def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
+    """
+    Generate a detailed PDF report with full legal analysis.
+    
+    Args:
+        wa_id: WhatsApp user ID
+        name: User's name
+        research_data: Stored research data from previous query
+        
+    Returns:
+        str: Path to generated PDF file
+    """
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak
+        from reportlab.lib.enums import TA_JUSTIFY, TA_CENTER, TA_RIGHT
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        import tempfile
+        from datetime import datetime
+        
+        # Register Urdu-compatible font (Arial supports Arabic/Urdu)
+        try:
+            # Use system Arial font which supports Urdu/Arabic
+            font_path = r"C:\Windows\Fonts\arial.ttf"
+            if os.path.exists(font_path):
+                pdfmetrics.registerFont(TTFont('ArialUnicode', font_path))
+                urdu_font = 'ArialUnicode'
+                logger.info("✅ Registered Arial font for Urdu support")
+            else:
+                # Fallback to Helvetica
+                urdu_font = 'Helvetica'
+                logger.warning("⚠️ Arial font not found, using Helvetica fallback")
+        except Exception as font_error:
+            urdu_font = 'Helvetica'
+            logger.warning(f"⚠️ Font registration failed: {font_error}, using Helvetica fallback")
+        
+        # Extract research data
+        query = research_data.get('query', 'Legal Query')
+        full_legal_response = research_data.get('full_legal_response', '')
+        pdf_links = research_data.get('pdf_links', [])
+        doc_count = research_data.get('doc_count', 0)
+        detected_language = research_data.get('detected_language', 'en')
+        voice_summary = research_data.get('voice_summary', '')
+        
+        # Create PDF file
+        temp_dir = tempfile.gettempdir()
+        pdf_filename = f"LawYaar_Report_{wa_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        pdf_path = os.path.join(temp_dir, pdf_filename)
+        
+        # Create PDF document
+        doc = SimpleDocTemplate(pdf_path, pagesize=A4,
+                              rightMargin=72, leftMargin=72,
+                              topMargin=72, bottomMargin=18)
+        
+        # Container for PDF elements
+        story = []
+        
+        # Styles with Urdu font support
+        styles = getSampleStyleSheet()
+        styles.add(ParagraphStyle(
+            name='Justify',
+            alignment=TA_JUSTIFY,
+            fontName=urdu_font,
+            fontSize=11,
+            leading=14
+        ))
+        styles.add(ParagraphStyle(
+            name='UrduNormal',
+            parent=styles['Normal'],
+            fontName=urdu_font,
+            fontSize=11,
+            alignment=TA_RIGHT  # Right-aligned for Urdu text
+        ))
+        
+        # Title
+        title_text = "LawYaar Legal Research Report"
+        title = Paragraph(title_text, styles['Title'])
+        story.append(title)
+        story.append(Spacer(1, 12))
+        
+        # Metadata
+        meta_data = f"""
+        <b>Generated for:</b> {name}<br/>
+        <b>Date:</b> {datetime.now().strftime('%B %d, %Y at %I:%M %p')}<br/>
+        <b>Cases Analyzed:</b> {doc_count}<br/>
+        <b>Language:</b> {'Urdu/English' if detected_language == 'ur' else 'English'}
+        """
+        story.append(Paragraph(meta_data, styles['Normal']))
+        story.append(Spacer(1, 12))
+        
+        # User Query
+        story.append(Paragraph("<b>Your Legal Query:</b>", styles['Heading2']))
+        # Escape XML special characters in query
+        from xml.sax.saxutils import escape
+        query_escaped = escape(query)
+        story.append(Paragraph(query_escaped, styles['Justify']))
+        story.append(Spacer(1, 12))
+        
+        # Summary
+        story.append(Paragraph("<b>Executive Summary:</b>", styles['Heading2']))
+        # Escape and convert markdown to simple text for PDF
+        summary_escaped = escape(voice_summary)
+        # Simple markdown conversion (bold only)
+        import re
+        # Replace **text** with <b>text</b>
+        summary_escaped = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', summary_escaped)
+        # Replace *text* with <i>text</i>
+        summary_escaped = re.sub(r'\*([^*]+)\*', r'<i>\1</i>', summary_escaped)
+        story.append(Paragraph(summary_escaped, styles['Justify']))
+        story.append(Spacer(1, 12))
+        
+        story.append(PageBreak())
+        
+        # Detailed Legal Analysis
+        story.append(Paragraph("<b>Detailed Legal Analysis:</b>", styles['Heading2']))
+        story.append(Spacer(1, 12))
+        
+        # Escape and convert markdown to PDF-friendly format
+        legal_text = escape(full_legal_response)
+        # Replace **text** with <b>text</b> properly
+        legal_text = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', legal_text)
+        # Replace newlines with breaks
+        legal_text = legal_text.replace('\n', '<br/>')
+        
+        # Split into paragraphs
+        for para in legal_text.split('<br/><br/>'):
+            if para.strip():
+                story.append(Paragraph(para, styles['Justify']))
+                story.append(Spacer(1, 6))
+        
+        story.append(PageBreak())
+        
+        # Case References with Links
+        if pdf_links and len(pdf_links) > 0:
+            story.append(Paragraph("<b>Case Documents & References:</b>", styles['Heading2']))
+            story.append(Spacer(1, 12))
+            
+            for i, pdf_info in enumerate(pdf_links, 1):
+                case_no = pdf_info.get('case_no', 'Case')
+                case_title = pdf_info.get('title', '')
+                url = pdf_info.get('url', '')
+                
+                case_text = f"<b>{i}. {case_no}</b>"
+                if case_title:
+                    case_text += f": {case_title}"
+                if url:
+                    case_text += f"<br/><a href='{url}'>{url}</a>"
+                
+                story.append(Paragraph(case_text, styles['Normal']))
+                story.append(Spacer(1, 6))
+        
+        # Footer
+        story.append(Spacer(1, 24))
+        footer_text = """
+        <i>This report was generated by LawYaar, an AI-powered legal research assistant. 
+        While we strive for accuracy, please consult with a qualified legal professional 
+        for advice specific to your situation.</i>
+        """
+        story.append(Paragraph(footer_text, styles['Normal']))
+        
+        # Build PDF
+        doc.build(story)
+        
+        logger.info(f"✅ PDF report generated: {pdf_path}")
+        return pdf_path
+        
+    except Exception as e:
+        logger.error(f"❌ Error generating PDF report: {e}", exc_info=True)
+        return None
 
 
 def _is_urdu_text(text: str) -> bool:

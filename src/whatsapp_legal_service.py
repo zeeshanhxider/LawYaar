@@ -150,13 +150,27 @@ class LawYaarWhatsAppService:
             # Detect language and create instruction for same-language response
             detected_language, language_instruction = self._detect_language_and_create_instruction(message_body)
             
+            # Log language detection
+            logger.info("="*80)
+            logger.info("LANGUAGE DETECTION & TRANSLATION CHECK")
+            logger.info("="*80)
+            logger.info(f"Original query: {message_body}")
+            logger.info(f"Detected language: {detected_language}")
+            
             # IMPORTANT: If query is in Urdu, translate to English for vector search
             # (since our documents and embeddings are in English)
             search_query = message_body
             if detected_language == 'ur':
-                logger.info(f"Detected Urdu query: {message_body[:100]}")
+                logger.info(f"✅ Urdu detected - will translate for vector search")
+                logger.info(f"Original Urdu query: {message_body[:100]}")
                 search_query = await self._translate_urdu_to_english(message_body)
-                logger.info(f"Using English translation for search: {search_query[:100]}")
+                logger.info(f"✅ English translation for search: {search_query}")
+                logger.info(f"Translation success: Query will be searched in English")
+            else:
+                logger.info(f"✅ English detected - no translation needed")
+                logger.info(f"Search query (same as input): {search_query}")
+            
+            logger.info("="*80)
             
             # Create shared state for LawYaar research flow
             shared = {
@@ -226,8 +240,20 @@ class LawYaarWhatsAppService:
             
         except Exception as e:
             logger.error(f"Error generating legal response: {e}", exc_info=True)
-            return ("I apologize, but I encountered an error while researching your legal question. "
-                   "Please try again or contact a legal professional for assistance.")
+            error_message = ("I apologize, but I encountered an error while researching your legal question. "
+                           "Please try again or contact a legal professional for assistance.")
+            
+            # If return_metadata is True, return dict even for errors
+            if return_metadata:
+                return {
+                    "full_legal_response": error_message,
+                    "relevant_documents": [],
+                    "pdf_links": [],
+                    "document_count": 0,
+                    "detected_language": "en"
+                }
+            
+            return error_message
     
     def _detect_language_and_create_instruction(self, text: str) -> tuple[str, str]:
         """

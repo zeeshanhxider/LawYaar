@@ -207,6 +207,122 @@ def send_typing_indicator(recipient, action="typing"):
         return None
 
 
+def send_document(recipient, document_path, caption=None, context_message_id=None):
+    """Send a document file (PDF, DOC, etc.) via WhatsApp.
+    
+    Args:
+        recipient (str): The WhatsApp ID of the recipient
+        document_path (str): Local path to the document file
+        caption (str, optional): Caption for the document
+        context_message_id (str, optional): Message ID to reply to
+        
+    Returns:
+        dict: Response from WhatsApp API, or None if send failed
+    """
+    try:
+        access_token = os.getenv('ACCESS_TOKEN')
+        phone_number_id = os.getenv('PHONE_NUMBER_ID')
+        version = os.getenv('VERSION', 'v23.0')
+        
+        if not access_token or not phone_number_id:
+            logger.error("❌ ACCESS_TOKEN or PHONE_NUMBER_ID not found")
+            return None
+        
+        if not os.path.exists(document_path):
+            logger.error(f"❌ Document file not found: {document_path}")
+            return None
+        
+        logger.info(f"📤 Uploading and sending document to {recipient}")
+        
+        # Step 1: Upload document to WhatsApp
+        upload_url = f"https://graph.facebook.com/{version}/{phone_number_id}/media"
+        headers = {
+            "Authorization": f"Bearer {access_token}"
+        }
+        
+        filename = os.path.basename(document_path)
+        
+        with open(document_path, 'rb') as doc_file:
+            files = {
+                'file': (filename, doc_file, 'application/pdf'),
+                'messaging_product': (None, 'whatsapp'),
+                'type': (None, 'application/pdf')
+            }
+            
+            logger.info(f"⬆️ Uploading document: {filename}")
+            upload_response = requests.post(
+                upload_url,
+                headers=headers,
+                files=files,
+                timeout=90  # PDFs can be large
+            )
+            upload_response.raise_for_status()
+        
+        upload_result = upload_response.json()
+        media_id = upload_result.get('id')
+        
+        if not media_id:
+            logger.error(f"❌ No media ID in upload response: {upload_result}")
+            return None
+        
+        logger.info(f"✅ Document uploaded! Media ID: {media_id}")
+        
+        # Step 2: Send message with document
+        message_url = f"https://graph.facebook.com/{version}/{phone_number_id}/messages"
+        
+        # Remove '+' prefix for WhatsApp API
+        recipient_clean = recipient.replace('+', '')
+        
+        message_data = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": recipient_clean,
+            "type": "document",
+            "document": {
+                "id": media_id,
+                "filename": filename
+            }
+        }
+        
+        # Add caption if provided
+        if caption:
+            message_data["document"]["caption"] = caption
+        
+        # Add context for reply threading
+        if context_message_id:
+            message_data["context"] = {
+                "message_id": context_message_id
+            }
+        
+        headers["Content-Type"] = "application/json"
+        
+        logger.info(f"📨 Sending document message...")
+        send_response = requests.post(
+            message_url,
+            headers=headers,
+            json=message_data,
+            timeout=30
+        )
+        send_response.raise_for_status()
+        
+        result = send_response.json()
+        logger.info(f"✅ Document sent successfully: {result}")
+        
+        return result
+        
+    except requests.Timeout:
+        logger.error("⏱️ Timeout while sending document")
+        return None
+    except requests.RequestException as e:
+        logger.error(f"❌ Failed to send document: {e}")
+        if hasattr(e, 'response') and e.response is not None:
+            logger.error(f"Response: {e.response.text}")
+        return None
+    except Exception as e:
+        logger.error(f"❌ Unexpected error sending document: {e}")
+        return None
+
+
 def process_text_for_whatsapp(text):
     # Remove brackets
     pattern = r"\【.*?\】"
@@ -303,10 +419,145 @@ def process_whatsapp_message(body):
             print(f"✅ Transcription successful: '{transcribed_text}'")
             logging.info(f"📝 Transcription from {name}: {transcribed_text}")
             
+            # Import PDF handlers for voice messages too
+            from app.services.llm_service import _is_pdf_rejection, _handle_pdf_rejection
+            
+            # Check if this voice message is a PDF rejection
+            if _is_pdf_rejection(transcribed_text):
+                print("🚫 PDF rejection detected in VOICE - handling gracefully...")
+                # Get language from last interaction
+                from app.services.llm_service import check_if_chat_exists
+                detected_language = 'en'  # default
+                try:
+                    chat_history = check_if_chat_exists(wa_id)
+                    if chat_history and len(chat_history) > 0:
+                        for msg in reversed(chat_history):
+                            if msg.get('role') == 'model' and 'research_data' in msg:
+                                detected_language = msg['research_data'].get('detected_language', 'en')
+                                break
+                except:
+                    pass
+                
+                # Send friendly acknowledgment as VOICE reply
+                rejection_response = _handle_pdf_rejection(wa_id, detected_language)
+                
+                # Synthesize rejection message to voice
+                print("🗣️ Synthesizing rejection response to voice...")
+                audio_path_tts = synthesize_speech(rejection_response)
+                
+                if audio_path_tts:
+                    # Send voice reply
+                    print(f"📤 Sending voice rejection response to {recipient}...")
+                    send_audio_reply(recipient, audio_path_tts, context_message_id=message_id)
+                    get_voice_handler().cleanup_temp_files(audio_path_tts)
+                else:
+                    # Fallback to text if TTS fails
+                    rejection_data = get_text_message_input(recipient, rejection_response, context_message_id=message_id)
+                    send_message(rejection_data)
+                
+                # Cleanup audio
+                get_voice_handler().cleanup_temp_files(audio_path)
+                print("✅ PDF rejection handled via VOICE - conversation continues")
+                return
+            
             # 3. Generate AI response using Gemini + RAG
             print("🤖 Step 3: Generating AI response...")
             ai_response = generate_response(transcribed_text, wa_id, name)
-            print(f"🤖 AI Response: {ai_response}")
+            print(f"🤖 AI Response type: {type(ai_response)}")
+            
+            # Handle different response types
+            if isinstance(ai_response, dict):
+                response_type = ai_response.get('type', '')
+                
+                # Handle voice response with PDF prep (parallel PDF generation)
+                if response_type == 'voice_with_pdf_prep':
+                    print("📄 Voice response with PDF prep detected!")
+                    voice_summary = ai_response.get('voice_summary', '')
+                    research_data = ai_response.get('research_data', {})
+                    detected_language = ai_response.get('detected_language', 'en')
+                    
+                    # Use the voice summary as the actual response
+                    ai_response = voice_summary
+                    
+                    # Send voice response first
+                    print(f"✅ Using voice summary ({len(voice_summary)} chars)")
+                    print("🗣️ Synthesizing voice response...")
+                    audio_path_tts = synthesize_speech(voice_summary)
+                    
+                    if audio_path_tts:
+                        print(f"📤 Sending voice response to {recipient}...")
+                        send_audio_reply(recipient, audio_path_tts, context_message_id=message_id)
+                        get_voice_handler().cleanup_temp_files(audio_path_tts)
+                    else:
+                        print("❌ TTS failed, sending text fallback")
+                        text_data = get_text_message_input(recipient, voice_summary, context_message_id=message_id)
+                        send_message(text_data)
+                    
+                    # Send PDF offer as TEXT message (after voice)
+                    print("📄 Sending PDF offer message...")
+                    if detected_language == 'ur':
+                        pdf_offer = (
+                            "📄 کیا آپ تفصیلی رپورٹ PDF میں چاہتے ہیں؟\n\n"
+                            "✅ ہاں - PDF بھیجیں\n"
+                            "❌ نہیں - شکریہ"
+                        )
+                    else:
+                        pdf_offer = (
+                            "📄 Would you like a detailed PDF report?\n\n"
+                            "✅ Yes - Send PDF\n"
+                            "❌ No - No thanks"
+                        )
+                    
+                    offer_data = get_text_message_input(recipient, pdf_offer, context_message_id=message_id)
+                    send_message(offer_data)
+                    print("✅ PDF offer sent!")
+                    
+                    # TODO: Start background PDF generation here
+                    # For now, PDF will be generated on-demand when user says "yes"
+                    print("💡 PDF will be generated when user responds 'yes'")
+                    
+                    # Cleanup downloaded audio
+                    get_voice_handler().cleanup_temp_files(audio_path)
+                    return
+                
+                # Handle explicit PDF response
+                elif response_type == 'pdf_response':
+                    print("📄 PDF response detected!")
+                    pdf_path = ai_response.get('pdf_path')
+                    pdf_message = ai_response.get('message', 'Here is your detailed report.')
+                    
+                    # Send confirmation message first
+                    print(f"📤 Sending PDF confirmation message...")
+                    confirmation_data = get_text_message_input(recipient, pdf_message, context_message_id=message_id)
+                    send_message(confirmation_data)
+                    
+                    # Send PDF document
+                    if pdf_path and os.path.exists(pdf_path):
+                        print(f"📤 Sending PDF document: {pdf_path}")
+                        send_document(recipient, pdf_path, caption="LawYaar Legal Research Report", context_message_id=message_id)
+                        
+                        # Cleanup PDF file
+                        try:
+                            os.remove(pdf_path)
+                            print(f"🗑️ Cleaned up PDF: {pdf_path}")
+                        except:
+                            pass
+                    
+                    # Cleanup downloaded audio
+                    get_voice_handler().cleanup_temp_files(audio_path)
+                    return
+                
+                # Unknown dict type - extract message if available
+                else:
+                    print(f"⚠️ Unknown response type: {response_type}")
+                    ai_response = ai_response.get('message', str(ai_response))
+            
+            # At this point, ai_response should be a string
+            if not isinstance(ai_response, str):
+                print(f"❌ ERROR: ai_response is not a string: {type(ai_response)}")
+                ai_response = str(ai_response)
+            
+            # Normal response - process as text
             ai_response = process_text_for_whatsapp(ai_response)
             
             logging.info(f"🤖 AI Response: {ai_response}")
@@ -350,9 +601,83 @@ def process_whatsapp_message(body):
         print(f"📩 Text message from {name} ({wa_id}): {message_body}")
         logging.info(f"📩 Text message from {name} ({wa_id}): {message_body}")
 
+        # Import PDF rejection handlers
+        from app.services.llm_service import _is_pdf_rejection, _handle_pdf_rejection
+        
+        # Check if this is a PDF rejection (user said "no" to PDF offer)
+        if _is_pdf_rejection(message_body):
+            print("🚫 PDF rejection detected - handling gracefully...")
+            # Get language from last interaction
+            from app.services.llm_service import check_if_chat_exists
+            detected_language = 'en'  # default
+            try:
+                chat_history = check_if_chat_exists(wa_id)
+                if chat_history and len(chat_history) > 0:
+                    for msg in reversed(chat_history):
+                        if msg.get('role') == 'model' and 'research_data' in msg:
+                            detected_language = msg['research_data'].get('detected_language', 'en')
+                            break
+            except:
+                pass
+            
+            # Send friendly acknowledgment
+            rejection_response = _handle_pdf_rejection(wa_id, detected_language)
+            rejection_data = get_text_message_input(recipient, rejection_response, context_message_id=message_id)
+            send_message(rejection_data)
+            print("✅ PDF rejection handled - conversation continues")
+            return
+
         # Gemini Integration with RAG
         print("🤖 Generating AI response with Gemini + RAG...")
         response = generate_response(message_body, wa_id, name)
+        
+        # Handle different response types
+        if isinstance(response, dict):
+            response_type = response.get('type', '')
+            
+            # Handle voice response with PDF prep (shouldn't happen for text, but handle anyway)
+            if response_type == 'voice_with_pdf_prep':
+                print("📄 Voice response with PDF prep detected in text handler!")
+                voice_summary = response.get('voice_summary', '')
+                # For text messages, just use the summary as regular text
+                response = voice_summary
+                print(f"✅ Using voice summary as text ({len(response)} chars)")
+            
+            # Handle explicit PDF response
+            elif response_type == 'pdf_response':
+                print("📄 PDF response detected!")
+                pdf_path = response.get('pdf_path')
+                pdf_message = response.get('message', 'Here is your detailed report.')
+                
+                # Send confirmation message first
+                print(f"📤 Sending PDF confirmation message...")
+                confirmation_data = get_text_message_input(recipient, pdf_message, context_message_id=message_id)
+                send_message(confirmation_data)
+                
+                # Send PDF document
+                if pdf_path and os.path.exists(pdf_path):
+                    print(f"📤 Sending PDF document: {pdf_path}")
+                    send_document(recipient, pdf_path, caption="LawYaar Legal Research Report", context_message_id=message_id)
+                    
+                    # Cleanup PDF file
+                    try:
+                        os.remove(pdf_path)
+                        print(f"🗑️ Cleaned up PDF: {pdf_path}")
+                    except:
+                        pass
+                return
+            
+            # Unknown dict type - extract message if available
+            else:
+                print(f"⚠️ Unknown response type: {response_type}")
+                response = response.get('message', str(response))
+        
+        # At this point, response should be a string
+        if not isinstance(response, str):
+            print(f"❌ ERROR: response is not a string: {type(response)}")
+            response = str(response)
+        
+        # Normal text response
         print(f"🤖 AI Response generated: {response}")
         response = process_text_for_whatsapp(response)
         print(f"✅ Response formatted for WhatsApp: {response}")

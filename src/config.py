@@ -47,18 +47,14 @@ class LLMConfig:
     
     # Default LLM provider and model
     PROVIDER = "openai"  # Options: "openai", "gemini"
-    MODEL = "gpt-5-mini"  # Default model (recommended)
+    MODEL = "gpt-4o-mini"  # Default model (fast and cost-effective)
     
     # Available models for each provider
     OPENAI_MODELS = [
-        "gpt-5",
-        "gpt-5-mini",
-        "gpt-5-nano",
-        "gpt-4.1",
-        "gpt-4o",
-        "gpt-4o-mini",
-        "gpt-4-turbo",
-        "gpt-3.5-turbo"
+        "gpt-4o",          # Most capable, multimodal
+        "gpt-4o-mini",     # Fast and cost-effective (recommended)
+        "gpt-4-turbo",     # Previous generation
+        "gpt-3.5-turbo"    # Legacy, cheapest
     ]
     
     GEMINI_MODELS = [
