@@ -95,9 +95,10 @@ FULL DOCUMENT CONTENT:
 INSTRUCTIONS:
 1. Extract only information that directly answers the user's query
 2. Include specific quotes with paragraph references where relevant
-3. Be concise - focus on key facts, holdings, and reasoning
+3. Be concise and dense - focus on key facts, holdings, and reasoning
 4. If the case doesn't address the query, state that clearly
-5. Provide ONE paragraph summary (maximum 150 words)
+5. Provide ONE focused paragraph (MAXIMUM 100 words - be extremely concise)
+6. Use plain language - avoid unnecessary legal jargon
 
 SUMMARY:"""
 
@@ -203,7 +204,7 @@ class ResponseComposerNode(Node):
         # Create final response prompt
         all_summaries_text = "\n\n".join(case_summaries)
         
-        prompt = f"""You are a senior legal research assistant specializing in Supreme Court of Pakistan case law. Provide a focused response to a specific legal query.
+        prompt = f"""You are a senior legal research assistant specializing in Supreme Court of Pakistan case law. Provide a comprehensive yet concise response to a specific legal query.
 
 🌐 LANGUAGE REQUIREMENT: {language_instruction}
 
@@ -212,28 +213,53 @@ USER QUERY: {user_query}
 RELEVANT CASES AND SUMMARIES ({len(successful_docs)} cases):
 {all_summaries_text}
 
-INSTRUCTIONS:
-1. Answer ONLY what the user asked - be direct and concise
-2. Synthesize information from ALL {len(successful_docs)} cases provided
-3. Ground ALL statements in the provided case law
-4. When citing cases, use the case number format shown above (do NOT add extra formatting)
-5. If cases have different outcomes, explain distinguishing factors
-6. If the cases don't fully address the query, state that clearly
+CRITICAL CONSTRAINTS:
+- MAXIMUM LENGTH: 2000 words (strictly enforced)
+- DENSITY: Every sentence must add value - no filler or redundancy
+- COMPREHENSIVENESS: Cover all essential aspects despite the word limit
+- CITATIONS: Reference cases naturally within the text (e.g., "In C.A.123/2020...")
 
-RESPONSE STRUCTURE:
+INSTRUCTIONS:
+1. Answer ONLY what the user asked - be direct and focused
+2. Synthesize information from ALL {len(successful_docs)} cases provided
+3. Ground ALL statements in the provided case law with inline citations
+4. Use concise language - avoid legal jargon where plain language suffices
+5. If cases have different outcomes, explain distinguishing factors briefly
+6. Prioritize key holdings, principles, and practical implications
+7. If cases don't fully address the query, state that clearly in 1-2 sentences
+
+RESPONSE STRUCTURE (adapt based on query):
 ## Direct Answer
-[Provide a clear, concise answer to the user's query based on the cases]
+[2-3 sentences directly answering the user's query]
 
 ## Legal Analysis
-[Synthesize key findings from the cases - what patterns emerge?]
+[Dense synthesis of key findings, principles, and holdings from cases - maximum 1500 words]
 
-## Cases Referenced
-[List all {len(successful_docs)} cases briefly showing their contribution to the answer]
+## Key Cases
+[Brief list of main cases with their contribution - maximum 300 words]
+
+IMPORTANT: Your entire response MUST be under 2000 words total. Be comprehensive but concise. Every word must count.
 
 RESPONSE:"""
 
         try:
             response = call_llm(prompt)
+            
+            # Validate and enforce 2000 word limit
+            word_count = len(response.split())
+            if word_count > 2000:
+                logger.warning(f"Response exceeded 2000 words ({word_count} words). Truncating...")
+                # Truncate to approximately 2000 words while preserving structure
+                words = response.split()
+                truncated_response = ' '.join(words[:2000])
+                # Try to end at a sentence
+                last_period = truncated_response.rfind('.')
+                if last_period > 1500:  # Only truncate at sentence if we're past 75% mark
+                    truncated_response = truncated_response[:last_period + 1]
+                truncated_response += "\n\n*[Response truncated to meet 2000-word limit]*"
+                response = truncated_response
+            else:
+                logger.info(f"Response generated: {word_count} words (within 2000 word limit)")
             
             # Add source footer
             footer = "\n\n---\n\n### 📑 Sources\n\n"
