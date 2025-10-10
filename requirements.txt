@@ -1,6 +1,7 @@
 pocketflow>=0.0.1
 openai>=1.0.0
 google-genai>=1.0.0
+google-generativeai
 chromadb>=0.5.23
 sentence-transformers>=2.2.0
 python-dotenv>=1.0.0
@@ -8,16 +9,9 @@ fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 websockets>=12.0
 flask
-python-dotenv
-openai
 aiohttp
 requests
-google-generativeai
 PyPDF2
-chromadb
-sentence-transformers
-# Voice message handling dependencies
-google-cloud-speech  # Optional: for Google Speech-to-Text transcription
-# PDF generation dependencies
 reportlab>=4.0.0
 nest-asyncio>=1.5.0
+google-cloud-speech

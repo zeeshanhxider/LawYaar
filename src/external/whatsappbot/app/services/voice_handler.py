@@ -217,9 +217,13 @@ class VoiceMessageHandler:
             # Upload the audio file
             logger.info(f"🎤 Transcribing audio with Gemini: {file_path}")
             
-            # Upload file to Gemini File API
+            # Determine MIME type from file extension
+            mime_type = self._get_mime_type(file_path)
+            logger.info(f"📄 Detected MIME type: {mime_type}")
+            
+            # Upload file to Gemini File API with explicit MIME type
             logger.info("⬆️ Uploading audio file to Gemini...")
-            uploaded_file = genai.upload_file(file_path)
+            uploaded_file = genai.upload_file(file_path, mime_type=mime_type)
             logger.info(f"✅ File uploaded: {uploaded_file.name}")
             
             # Use gemini-2.5-flash (stable model that supports audio)
@@ -531,6 +535,29 @@ class VoiceMessageHandler:
             'audio/wav': '.wav',
         }
         return mime_map.get(mime_type, '.ogg')
+    
+    def _get_mime_type(self, file_path):
+        """
+        Get MIME type from file extension.
+        
+        Args:
+            file_path (str): Path to the audio file
+            
+        Returns:
+            str: MIME type string
+        """
+        ext = Path(file_path).suffix.lower()
+        ext_map = {
+            '.ogg': 'audio/ogg',
+            '.opus': 'audio/ogg',
+            '.mp3': 'audio/mpeg',
+            '.m4a': 'audio/mp4',
+            '.mp4': 'audio/mp4',
+            '.amr': 'audio/amr',
+            '.wav': 'audio/wav',
+            '.webm': 'audio/webm',
+        }
+        return ext_map.get(ext, 'audio/ogg')  # Default to audio/ogg for WhatsApp voice
 
 
 # Convenience functions for backward compatibility

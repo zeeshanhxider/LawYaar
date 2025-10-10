@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  lawyaar-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lawyaar-fastapi
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./chroma_db:/app/chroma_db
+      - ./src/assets/data:/app/src/assets/data
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - GRPC_VERBOSITY=ERROR
+      - GRPC_TRACE=
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
