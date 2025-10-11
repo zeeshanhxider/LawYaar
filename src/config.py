@@ -91,6 +91,10 @@ class SystemConfig:
     # Progress tracking
     ENABLE_PROGRESS_TRACKING = True
     PROGRESS_UPDATE_INTERVAL = 0.5  # Seconds between progress updates
+    
+    # Performance optimization
+    USE_CONTENT_HASH_CACHE = True  # Use content hashing for cache (slower first time, but more reliable)
+    PARALLEL_WORKERS = 4  # Number of parallel workers for file processing (0 = auto-detect)
 
 
 # Convenience functions to get configurations

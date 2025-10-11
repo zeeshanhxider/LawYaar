@@ -30,6 +30,8 @@ class DocumentIngestionNode(BatchNode):
                     file_paths.append(os.path.join(root, file))
         
         logger.info(f"Found {len(file_paths)} files to process")
+        shared["_total_files"] = len(file_paths)
+        shared["_processed_count"] = 0
         return file_paths
     
     def exec(self, file_path):
@@ -61,7 +63,14 @@ class VectorIndexCreationNode(BatchNode):
         
         # Check if collection exists and cache is valid
         if vector_db.collection_exists(vdb_config.COLLECTION_NAME):
-            has_changes, reason = cache_manager.has_changes(config.DOCUMENTS_DIR)
+            logger.info("Existing collection found - checking for document changes...")
+            
+            # Use content-based hashing for reliable change detection
+            has_changes, reason = cache_manager.has_changes(
+                config.DOCUMENTS_DIR, 
+                use_hash=True,  # Use content hashing instead of timestamps
+                quick_check=False
+            )
             
             if not has_changes:
                 logger.info("✓ Using cached vector database - no document changes detected")
@@ -89,6 +98,8 @@ class VectorIndexCreationNode(BatchNode):
                 documents_to_chunk.append(file_info)
         
         logger.info(f"Preparing {len(documents_to_chunk)} documents for chunking")
+        shared["_total_docs_to_chunk"] = len(documents_to_chunk)
+        shared["_chunked_count"] = 0
         return documents_to_chunk
     
     def exec(self, file_info):
@@ -113,6 +124,7 @@ class VectorIndexCreationNode(BatchNode):
             logger.info("Skipped indexing - using cached vector database")
             return "default"
         
+        logger.info("Consolidating chunks from all documents...")
         all_chunks = []
         for chunk_list in exec_res_list:
             all_chunks.extend(chunk_list)
@@ -126,9 +138,20 @@ class VectorIndexCreationNode(BatchNode):
         BATCH_SIZE = 5000  # Safe batch size under ChromaDB's limit
         
         total_chunks = len(all_chunks)
-        logger.info(f"Preparing to index {total_chunks} chunks in batches of {BATCH_SIZE}")
+        total_batches = (total_chunks + BATCH_SIZE - 1) // BATCH_SIZE
         
-        for i in range(0, total_chunks, BATCH_SIZE):
+        logger.info("="*80)
+        logger.info(f"INDEXING PROGRESS")
+        logger.info(f"Total chunks to index: {total_chunks:,}")
+        logger.info(f"Batch size: {BATCH_SIZE:,}")
+        logger.info(f"Total batches: {total_batches}")
+        logger.info("="*80)
+        
+        import time
+        start_time = time.time()
+        
+        for batch_num, i in enumerate(range(0, total_chunks, BATCH_SIZE), 1):
+            batch_start = time.time()
             batch_chunks = all_chunks[i:i + BATCH_SIZE]
             
             texts = [chunk['text'] for chunk in batch_chunks]
@@ -137,16 +160,35 @@ class VectorIndexCreationNode(BatchNode):
                    for chunk in batch_chunks]
             
             vector_db.add_documents(texts, metadatas, ids)
-            logger.info(f"Indexed batch {i//BATCH_SIZE + 1}: {len(batch_chunks)} chunks")
+            
+            batch_time = time.time() - batch_start
+            elapsed = time.time() - start_time
+            avg_time_per_batch = elapsed / batch_num
+            remaining_batches = total_batches - batch_num
+            eta = remaining_batches * avg_time_per_batch
+            
+            progress_pct = (batch_num / total_batches) * 100
+            logger.info(f"✓ Batch {batch_num}/{total_batches} ({progress_pct:.1f}%) - "
+                       f"{len(batch_chunks):,} chunks indexed in {batch_time:.1f}s - "
+                       f"ETA: {eta/60:.1f} min")
+        
+        total_time = time.time() - start_time
+        logger.info("="*80)
+        logger.info(f"✓ INDEXING COMPLETE!")
+        logger.info(f"Total time: {total_time/60:.1f} minutes")
+        logger.info(f"Total chunks indexed: {total_chunks:,}")
+        logger.info(f"Average speed: {total_chunks/total_time:.1f} chunks/second")
+        logger.info("="*80)
         
         shared["vector_db"] = vector_db
         shared["total_chunks_indexed"] = total_chunks
         
-        # Update cache after successful indexing
+        # Update cache after successful indexing (use content hashing)
+        logger.info("Updating cache manifest with content hashes...")
         config = get_system_config()
         cache_manager = create_cache_manager()
-        cache_manager.update_cache(config.DOCUMENTS_DIR)
-        logger.info(f"✓ Successfully indexed all {total_chunks} chunks and updated cache")
+        cache_manager.update_cache(config.DOCUMENTS_DIR, use_hash=True)
+        logger.info(f"✓ Cache updated successfully")
         
         return "default"
 
