@@ -22,11 +22,20 @@ class VectorDatabase:
         
         persist_dir = persist_directory or config.CHROMA_DB_PATH
         self.client = chromadb.PersistentClient(path=persist_dir)
+        
+        # Check for GPU availability
+        import torch
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        
+        # Initialize embedding function with optimizations
         self.embedding_function = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name=vdb_config.EMBEDDING_MODEL
+            model_name=vdb_config.EMBEDDING_MODEL,
+            device=device  # Use GPU if available
         )
         self.collection = None
-        logger.info(f"Initialized vector database at {persist_dir}")
+        
+        device_info = f"GPU ({torch.cuda.get_device_name(0)})" if device == "cuda" else "CPU"
+        logger.info(f"Initialized vector database at {persist_dir} using {device_info}")
     
     def create_or_get_collection(self, collection_name: str = "legal_cases"):
         """
@@ -52,7 +61,7 @@ class VectorDatabase:
     
     def add_documents(self, texts: List[str], metadatas: List[Dict], ids: List[str]):
         """
-        Add documents to the vector database
+        Add documents to the vector database with optimized batching
         
         Args:
             texts: List of document texts
@@ -62,12 +71,14 @@ class VectorDatabase:
         if not self.collection:
             self.create_or_get_collection()
         
+        # Add with optimized parameters
+        # ChromaDB will generate embeddings internally
         self.collection.add(
             documents=texts,
             metadatas=metadatas,
             ids=ids
         )
-        logger.info(f"Added {len(texts)} documents to collection")
+        # Don't log for each mini-batch to reduce I/O overhead
     
     def search(self, query: str, n_results: int = 10, similarity_threshold: float = 0.5) -> List[Dict[str, Any]]:
         """

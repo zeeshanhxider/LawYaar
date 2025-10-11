@@ -36,7 +36,13 @@ class VectorDBConfig:
     """Configuration for vector database"""
     
     COLLECTION_NAME = "legal_cases"
-    EMBEDDING_MODEL = "all-mpnet-base-v2"  # Better sentence transformer model for legal text
+    
+    # Embedding model options (in order of speed vs quality):
+    # "all-MiniLM-L6-v2" - FASTEST (6x faster, 384 dims, good quality)
+    # "all-MiniLM-L12-v2" - FAST (3x faster, 384 dims, better quality)  
+    # "all-mpnet-base-v2" - BALANCED (768 dims, best quality, slower)
+    EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # Optimized for speed (was all-mpnet-base-v2)
+    
     SIMILARITY_THRESHOLD = 0.01  # Very low threshold to capture more results (was 0.05, actual scores: 0.05-0.23)
     MAX_RESULTS = 100  # Increased for better coverage of legal concepts
     MAX_DOCS = 3  # Maximum number of documents to process for final response
@@ -95,6 +101,10 @@ class SystemConfig:
     # Performance optimization
     USE_CONTENT_HASH_CACHE = True  # Use content hashing for cache (slower first time, but more reliable)
     PARALLEL_WORKERS = 4  # Number of parallel workers for file processing (0 = auto-detect)
+    
+    # Indexing optimization
+    INDEXING_BATCH_SIZE = 100  # Smaller batches = faster embedding generation (don't change unless needed)
+    SHOW_PROGRESS_EVERY_N_BATCHES = 10  # Show progress every N batches (reduce logging overhead)
 
 
 # Convenience functions to get configurations

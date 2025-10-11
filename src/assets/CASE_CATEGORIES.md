@@ -10,96 +10,6 @@ This document provides a comprehensive overview of all case categories available
 
 ---
 
-## 📊 Currently Active Categories
-
-The following categories are currently being used in the LawYaar system:
-
-| #   | Category                           | Cases | Status    |
-| --- | ---------------------------------- | ----- | --------- |
-| 17  | **Family**                         | 50    | ✅ Active |
-| 22  | **Rent**                           | 29    | ✅ Active |
-| 23  | **Land Acquisition**               | 29    | ✅ Active |
-| 27  | **Banking**                        | 25    | ✅ Active |
-| 29  | **Labour Cases**                   | 23    | ✅ Active |
-| 34  | **Company Law**                    | 15    | ✅ Active |
-| 35  | **Educational Institutions Cases** | 15    | ✅ Active |
-| 43  | **Civil Suits**                    | 11    | ✅ Active |
-
-**Total Active Cases:** 197 case files
-
-### Active Category Details
-
-#### 1. Family Law (50 cases)
-
-Family law cases including:
-
-- Dissolution of Marriage
-- Maintenance Allowance
-- Recovery of Dower Amount
-- Return of Dowery Articles
-- Custody issues
-
-#### 2. Rent & Ejectment (29 cases)
-
-Rental and property ejectment cases:
-
-- Default in Payment of Rent
-- Ejectment proceedings
-- Determination of Fair Rent
-- Enhancement of rent
-- Personal Need
-
-#### 3. Land Acquisition (29 cases)
-
-Government land acquisition matters:
-
-- Compensation Awards
-- Determination of Market Value
-- Land Acquisition proceedings
-
-#### 4. Banking (25 cases)
-
-Banking and financial matters:
-
-- Recovery Suits
-- Execution/Auction Matters
-- Banking disputes
-
-#### 5. Labour Cases (23 cases)
-
-Employment and labor disputes:
-
-- Dismissal
-- Declaration as to Workmen
-- Wages, Bonus, Regularization
-- Daily Wages issues
-
-#### 6. Company Law (15 cases)
-
-Corporate legal matters:
-
-- Appointment of Liquidator/Receiver
-- Winding up
-- Company Law disputes
-
-#### 7. Educational Institutions (15 cases)
-
-Education-related cases:
-
-- Admission Matters
-- Examinations
-- Recognition/Equivalence of Degrees
-- Scholarship issues
-
-#### 8. Civil Suits (11 cases)
-
-General civil litigation:
-
-- Administration of property
-- Permanent/Temporary Injunction
-- Rejection of plaint
-
----
 
 ## 📑 Complete Category Index
 
@@ -123,7 +33,7 @@ General civil litigation:
 | 14   | NAB                           | 57    | National Accountability Bureau cases                               |
 | 15   | Other Sentences               | 56    | Various prison sentences (1-14 years R.I.)                         |
 | 16   | Election-National Assembly    | 50    | National Assembly election disputes                                |
-| 17   | **Family**                    | 50    | **✅ Currently Active**                                            |
+| 17   | Family                    | 50    |                                                                  |
 | 18   | Against Acquittal             | 46    | Appeals against acquittal orders                                   |
 | 19   | Election                      | 45    | General election matters                                           |
 | 20   | Contempt of Court             | 43    | Contempt proceedings                                               |
@@ -187,7 +97,7 @@ General civil litigation:
 - Pre-arrest bail applications
 - Anticipatory bail
 
-**Banking** (25 cases) **✅ Currently Active**
+**Banking** (25 cases) 
 
 - Banking/Execution/Auction Matters
 - Banking/Recovery Suits
@@ -206,7 +116,7 @@ General civil litigation:
 
 - Pakistan Electronic Media Regulatory Authority matters
 
-**Civil Suits** (11 cases) **✅ Currently Active**
+**Civil Suits** (11 cases) 
 
 - Administration of property
 - Permanent/Temporary Injunction
@@ -221,7 +131,7 @@ General civil litigation:
 - Colonization of Government Land Act
 - Grant of Proprietary Rights
 
-**Company Law** (15 cases) **✅ Currently Active**
+**Company Law** (15 cases) 
 
 - Appointment of Liquidator/Receiver
 - Winding up

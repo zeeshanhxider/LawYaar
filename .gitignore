@@ -79,6 +79,7 @@ coverage/
 
 /legenv
 chroma_db/
+chroma_db_small/
 
 raw_pdfs/
 

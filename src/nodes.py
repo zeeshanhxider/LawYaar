@@ -133,9 +133,10 @@ class VectorIndexCreationNode(BatchNode):
         vector_db = create_vector_db()
         vector_db.create_or_get_collection(vdb_config.COLLECTION_NAME)
         
-        # ChromaDB has a max batch size limit (around 5461)
-        # We need to batch the insertion for large numbers of chunks
-        BATCH_SIZE = 5000  # Safe batch size under ChromaDB's limit
+        # Optimize batch size for embedding generation
+        # Smaller batches = faster embedding generation = better throughput
+        # ChromaDB processes embeddings sequentially, so smaller is better
+        BATCH_SIZE = 100  # Optimized for embedding speed (was 5000)
         
         total_chunks = len(all_chunks)
         total_batches = (total_chunks + BATCH_SIZE - 1) // BATCH_SIZE
@@ -168,9 +169,13 @@ class VectorIndexCreationNode(BatchNode):
             eta = remaining_batches * avg_time_per_batch
             
             progress_pct = (batch_num / total_batches) * 100
-            logger.info(f"✓ Batch {batch_num}/{total_batches} ({progress_pct:.1f}%) - "
-                       f"{len(batch_chunks):,} chunks indexed in {batch_time:.1f}s - "
-                       f"ETA: {eta/60:.1f} min")
+            chunks_per_sec = len(batch_chunks) / batch_time if batch_time > 0 else 0
+            
+            # Only log every 10 batches or on first/last batch to reduce I/O overhead
+            if batch_num == 1 or batch_num == total_batches or batch_num % 10 == 0:
+                logger.info(f"✓ Batch {batch_num}/{total_batches} ({progress_pct:.1f}%) - "
+                           f"{len(batch_chunks):,} chunks in {batch_time:.1f}s "
+                           f"({chunks_per_sec:.0f} chunks/s) - ETA: {eta/60:.1f} min")
         
         total_time = time.time() - start_time
         logger.info("="*80)
