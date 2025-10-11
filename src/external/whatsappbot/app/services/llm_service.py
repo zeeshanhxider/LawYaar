@@ -242,6 +242,10 @@ ENGLISH RESPONSE:"""
         
         chitchat_response = call_llm(chitchat_prompt).strip()
         
+        # Remove "LawYaar:" prefix if LLM added it anyway
+        if chitchat_response.startswith("LawYaar:"):
+            chitchat_response = chitchat_response[8:].strip()
+        
         # Store in chat history
         new_history = chat_history if chat_history else []
         new_history.append({"role": "user", "parts": [message]})
@@ -1180,6 +1184,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         from reportlab.lib.colors import HexColor, black, white, gray, blue, darkblue, lightgrey
         import tempfile
         from datetime import datetime
+        from xml.sax.saxutils import escape
 
         # Register Urdu-compatible font using available system fonts
         urdu_font = 'Helvetica'  # Default fallback
@@ -1264,9 +1269,15 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         # Enhanced Styles with Professional Formatting
         styles = getSampleStyleSheet()
 
+        # Helper function to add or get existing style
+        def add_or_get_style(style_name, **kwargs):
+            if style_name in styles:
+                return styles[style_name]
+            styles.add(ParagraphStyle(name=style_name, **kwargs))
+            return styles[style_name]
+
         # Title Style
-        styles.add(ParagraphStyle(
-            name='ReportTitle',
+        add_or_get_style('ReportTitle',
             parent=styles['Title'],
             fontName='Helvetica-Bold',
             fontSize=24,
@@ -1274,11 +1285,10 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             textColor=darkblue,
             spaceAfter=20,
             leading=28
-        ))
+        )
 
         # Subtitle Style
-        styles.add(ParagraphStyle(
-            name='ReportSubtitle',
+        add_or_get_style('ReportSubtitle',
             parent=styles['Heading2'],
             fontName='Helvetica-Bold',
             fontSize=14,
@@ -1286,11 +1296,10 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             textColor=blue,
             spaceAfter=15,
             leading=18
-        ))
+        )
 
         # Section Header Style
-        styles.add(ParagraphStyle(
-            name='SectionHeader',
+        add_or_get_style('SectionHeader',
             parent=styles['Heading1'],
             fontName='Helvetica-Bold',
             fontSize=16,
@@ -1302,11 +1311,10 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             borderColor=blue,
             borderWidth=0,
             borderPadding=5
-        ))
+        )
 
         # Subsection Header Style
-        styles.add(ParagraphStyle(
-            name='SubsectionHeader',
+        add_or_get_style('SubsectionHeader',
             parent=styles['Heading2'],
             fontName='Helvetica-Bold',
             fontSize=14,
@@ -1315,11 +1323,10 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             spaceBefore=10,
             spaceAfter=8,
             leading=18
-        ))
+        )
 
         # Body Text Style with better font handling
-        styles.add(ParagraphStyle(
-            name='BodyText',
+        add_or_get_style('BodyText',
             parent=styles['Normal'],
             fontName=urdu_font,
             fontSize=11,
@@ -1327,11 +1334,10 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             leading=14,
             spaceAfter=6,
             encoding='utf-8'  # Ensure UTF-8 encoding
-        ))
+        )
 
         # Urdu-specific text style for better word formation
-        styles.add(ParagraphStyle(
-            name='UrduText',
+        add_or_get_style('UrduText',
             parent=styles['Normal'],
             fontName=urdu_font,
             fontSize=13,  # Slightly larger for better readability
@@ -1342,11 +1348,10 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             wordSpace=2,  # Better word spacing for Urdu
             allowWidows=0,  # Prevent single lines at page breaks
             allowOrphans=0,  # Prevent orphaned lines
-        ))
+        )
 
         # Urdu title style
-        styles.add(ParagraphStyle(
-            name='UrduTitle',
+        add_or_get_style('UrduTitle',
             parent=styles['Heading2'],
             fontName=urdu_font,
             fontSize=16,
@@ -1355,11 +1360,10 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             spaceAfter=10,
             leading=20,
             encoding='utf-8'
-        ))
+        )
 
         # Pure Urdu content style (right-aligned)
-        styles.add(ParagraphStyle(
-            name='UrduContent',
+        add_or_get_style('UrduContent',
             parent=styles['Normal'],
             fontName=urdu_font,
             fontSize=14,
@@ -1368,33 +1372,30 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             spaceAfter=8,
             encoding='utf-8',
             wordSpace=3,  # More spacing for Urdu words
-        ))
+        )
 
         # Metadata Style
-        styles.add(ParagraphStyle(
-            name='Metadata',
+        add_or_get_style('Metadata',
             parent=styles['Normal'],
             fontName='Helvetica',
             fontSize=10,
             alignment=TA_LEFT,
             textColor=HexColor('#34495E'),
             leading=12
-        ))
+        )
 
         # Footer Style
-        styles.add(ParagraphStyle(
-            name='Footer',
+        add_or_get_style('Footer',
             parent=styles['Normal'],
             fontName='Helvetica-Oblique',
             fontSize=9,
             alignment=TA_CENTER,
             textColor=gray,
             leading=11
-        ))
+        )
 
         # Highlight Box Style
-        styles.add(ParagraphStyle(
-            name='HighlightBox',
+        add_or_get_style('HighlightBox',
             parent=styles['Normal'],
             fontName='Helvetica-Bold',
             fontSize=12,
@@ -1405,7 +1406,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             borderWidth=1,
             borderPadding=8,
             leading=16
-        ))
+        )
 
         # ================================
         # HEADER SECTION - Professional Branding (Localized)

@@ -355,11 +355,24 @@ def process_whatsapp_message(body):
     
     # Get message ID and check for duplicates
     message_id = message.get("id")
+    message_timestamp = int(message.get("timestamp", 0))
     tracker = get_message_tracker()
     
     if tracker.is_processed(message_id):
         print(f"⚠️ Message {message_id} already processed - skipping duplicate")
         logging.info(f"⚠️ Duplicate message detected: {message_id} - skipping")
+        return
+    
+    # Check if message is too old (older than 5 minutes)
+    import time
+    current_time = int(time.time())
+    message_age_seconds = current_time - message_timestamp
+    MAX_MESSAGE_AGE = 300  # 5 minutes
+    
+    if message_age_seconds > MAX_MESSAGE_AGE:
+        print(f"⚠️ Message {message_id} is too old ({message_age_seconds}s) - skipping")
+        logging.info(f"⚠️ Old message detected: {message_id} (age: {message_age_seconds}s) - skipping")
+        tracker.mark_processed(message_id)  # Mark as processed to avoid re-checking
         return
     
     # Mark this message as processed
