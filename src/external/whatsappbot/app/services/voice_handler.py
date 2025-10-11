@@ -296,20 +296,30 @@ class VoiceMessageHandler:
             logger.error(f"❌ Google Speech transcription error: {e}")
             return None
     
-    def synthesize_speech(self, text):
+    def synthesize_speech(self, text, language='en'):
         """
         Convert text to speech using UpliftAI TTS API.
         Returns the streaming URL that can be sent directly to WhatsApp.
         
         Args:
             text (str): Text to convert to speech
+            language (str): Language code ('en', 'ur', 'sd', 'bl') to select appropriate voice
             
         Returns:
             str: UpliftAI streaming URL for the audio, or None if synthesis failed
         """
         try:
             upliftai_api_key = os.getenv('UPLIFTAI_API_KEY')
-            upliftai_voice_id = os.getenv('UPLIFTAI_VOICE_ID', 'v_8eelc901')
+            
+            # Select voice based on language
+            voice_mapping = {
+                'en': os.getenv('UPLIFTAI_VOICE_EN', 'v_8eelc901'),  # Default English voice
+                'ur': os.getenv('UPLIFTAI_VOICE_UR', 'v_8eelc901'),  # Urdu voice
+                'sd': os.getenv('UPLIFTAI_VOICE_SD', 'v_sd0kl3m9'),  # Sindhi voice
+                'bl': os.getenv('UPLIFTAI_VOICE_BL', 'v_bl1de2f7'),  # Balochi voice
+            }
+            
+            upliftai_voice_id = voice_mapping.get(language, voice_mapping['en'])  # Default to English
             upliftai_output_format = os.getenv('UPLIFTAI_OUTPUT_FORMAT', 'MP3_22050_64')
             
             if not upliftai_api_key:
@@ -581,9 +591,9 @@ def transcribe_audio(file_path):
     return get_voice_handler().transcribe_audio(file_path)
 
 
-def synthesize_speech(text):
+def synthesize_speech(text, language='en'):
     """Convert text to speech. See VoiceMessageHandler.synthesize_speech()"""
-    return get_voice_handler().synthesize_speech(text)
+    return get_voice_handler().synthesize_speech(text, language)
 
 
 def send_audio_reply(to, audio_path, context_message_id=None):

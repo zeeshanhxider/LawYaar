@@ -157,13 +157,13 @@ class LawYaarWhatsAppService:
             logger.info(f"Original query: {message_body}")
             logger.info(f"Detected language: {detected_language}")
             
-            # IMPORTANT: If query is in Urdu, translate to English for vector search
+            # IMPORTANT: If query is in Urdu, Sindhi, or Balochi, translate to English for vector search
             # (since our documents and embeddings are in English)
             search_query = message_body
-            if detected_language == 'ur':
-                logger.info(f"✅ Urdu detected - will translate for vector search")
-                logger.info(f"Original Urdu query: {message_body[:100]}")
-                search_query = await self._translate_urdu_to_english(message_body)
+            if detected_language in ['ur', 'sd', 'bl']:
+                logger.info(f"✅ {detected_language.upper()} detected - will translate for vector search")
+                logger.info(f"Original {detected_language} query: {message_body[:100]}")
+                search_query = await self._translate_to_english(message_body, detected_language)
                 logger.info(f"✅ English translation for search: {search_query}")
                 logger.info(f"Translation success: Query will be searched in English")
             else:
@@ -199,9 +199,9 @@ class LawYaarWhatsAppService:
                 logger.warning("LawYaar flow returned empty response")
                 empty_response = ("I apologize, but I couldn't generate a response to your legal query. "
                                 "Please try rephrasing your question or contact a legal professional.")
-                # Translate error message if input was in Urdu
-                if detected_language == 'ur':
-                    empty_response = await self._translate_to_urdu(empty_response)
+                # Translate error message if input was in Urdu, Sindhi, or Balochi
+                if detected_language in ['ur', 'sd', 'bl']:
+                    empty_response = await self._translate_to_target_language(empty_response, detected_language)
                 return empty_response
             
             # Get PDF links for successful documents (new field name)
@@ -221,10 +221,10 @@ class LawYaarWhatsAppService:
                 }
             
             # Otherwise, format for WhatsApp with PDF links
-            # If input was in Urdu but response is in English, translate it
-            if detected_language == 'ur':
-                logger.info("Detected Urdu input - translating response to Urdu...")
-                final_response = await self._translate_to_urdu(final_response)
+            # If input was in Urdu, Sindhi, or Balochi but response is in English, translate it
+            if detected_language in ['ur', 'sd', 'bl']:
+                logger.info(f"Detected {detected_language} input - translating response to {detected_language}...")
+                final_response = await self._translate_to_target_language(final_response, detected_language)
             
             # Format response for WhatsApp (keep it concise)
             whatsapp_response = self._format_for_whatsapp(final_response, shared, pdf_links)
@@ -258,18 +258,89 @@ class LawYaarWhatsAppService:
     def _detect_language_and_create_instruction(self, text: str) -> tuple[str, str]:
         """
         Detect the language of input text and create instruction to respond in same language.
-        
+
         Args:
             text: Input text to detect language
-            
+
         Returns:
-            tuple: (language_code, instruction) where language_code is 'ur' for Urdu or 'en' for English
+            tuple: (language_code, instruction) where language_code is 'ur' for Urdu, 'sd' for Sindhi, 'bl' for Balochi, or 'en' for English
         """
-        # Simple heuristic: check for Urdu/Arabic script characters
+        # Use LLM for intelligent detection
+        try:
+            import google.generativeai as genai
+            import os
+
+            gemini_api_key = os.getenv('GEMINI_API_KEY')
+            if gemini_api_key:
+                genai.configure(api_key=gemini_api_key)
+                model = genai.GenerativeModel('gemini-2.5-flash')
+
+                detection_prompt = f"""Analyze this text and determine the primary language being used.
+
+TEXT TO ANALYZE: "{text}"
+
+LANGUAGE CLASSIFICATION TASK:
+- If the text is primarily in ENGLISH, respond with "ENGLISH"
+- If the text is primarily in URDU (even if mixed with English), respond with "URDU"
+- If the text is primarily in SINDHI (even if mixed with English), respond with "SINDHI"
+- If the text is primarily in BALOCHI (even if mixed with English), respond with "BALOCHI"
+
+CONSIDER:
+1. Script: Urdu/Sindhi/Balochi use Arabic script, English uses Latin
+2. Context: Legal questions about Pakistan often indicate Urdu unless specified otherwise
+3. Keywords: Look for language-specific terms, place names, or cultural references
+4. Mixing: If text has both scripts, prioritize the non-English script
+5. Linguistic patterns: Consider grammar, vocabulary, and sentence structure unique to each language
+
+EXAMPLES:
+- "What are tenant rights in Pakistan?" → ENGLISH
+- "کیا کرایہ دار کے حقوق کیا ہیں؟" → URDU
+- "ڪراچي ۾ ڪرائيدار جا حق ڇا آهن؟" → SINDHI
+- "کِرایِداراں کے کَے حُقُوق ءَنت؟" → BALOCHI
+- "Tell me about divorce laws in Urdu" → URDU (explicitly requested)
+- "سنڌي قانون بابت بتاؤ" → SINDHI
+- "بلوچی میں طلاق کے قوانین" → BALOCHI
+- "Property dispute in Karachi" → ENGLISH (but context suggests Urdu response might be preferred)
+- "میرا گھر چھین لیا گیا ہے" → URDU
+- "مون کي گهر کسي چوري ڪري ورتو" → SINDHI
+- "مور گَر چوری ڪَت گئی" → BALOCHI
+
+Respond with ONLY ONE WORD: "ENGLISH", "URDU", "SINDHI", or "BALOCHI"
+
+DETECTED LANGUAGE:"""
+
+                response = model.generate_content(detection_prompt)
+                result = response.text.strip().upper()
+
+                # Map LLM response to our codes and instructions
+                if "URDU" in result:
+                    return ('ur',
+                           "IMPORTANT: The user's query is in Urdu/Arabic. "
+                           "You MUST respond in Urdu/Arabic script. "
+                           "Provide your entire legal analysis and response in Urdu language. "
+                           "اردو میں جواب دیں۔")
+                elif "SINDHI" in result:
+                    return ('sd',
+                           "IMPORTANT: The user's query is in Sindhi. "
+                           "You MUST respond in Sindhi language using Arabic script. "
+                           "Provide your entire legal analysis and response in Sindhi. "
+                           "سنڌي ۾ جواب ڏيو۔")
+                elif "BALOCHI" in result:
+                    return ('bl',
+                           "IMPORTANT: The user's query is in Balochi. "
+                           "You MUST respond in Balochi language using Arabic script. "
+                           "Provide your entire legal analysis and response in Balochi. "
+                           "بلوچی ۾ جواب ڏيو۔")
+                elif "ENGLISH" in result:
+                    return ('en', "Respond in clear, professional English.")
+        except Exception as e:
+            logger.warning(f"LLM language detection failed: {e}, falling back to script detection")
+
+        # Fallback: Simple heuristic: check for Urdu/Arabic script characters
         urdu_arabic_chars = sum(1 for char in text if '\u0600' <= char <= '\u06FF' or '\u0750' <= char <= '\u077F')
-        
+
         if urdu_arabic_chars > len(text) * 0.2:  # If more than 20% Urdu/Arabic characters
-            return ('ur', 
+            return ('ur',
                    "IMPORTANT: The user's query is in Urdu/Arabic. "
                    "You MUST respond in Urdu/Arabic script. "
                    "Provide your entire legal analysis and response in Urdu language. "
@@ -278,12 +349,13 @@ class LawYaarWhatsAppService:
             # Default to English
             return ('en', "Respond in clear, professional English.")
     
-    async def _translate_urdu_to_english(self, urdu_text: str) -> str:
+    async def _translate_to_english(self, text: str, source_language: str) -> str:
         """
-        Translate Urdu query to English for vector search.
+        Translate query from source language to English for vector search.
         
         Args:
-            urdu_text: Query in Urdu
+            text: Query in source language
+            source_language: Source language code ('ur', 'sd', 'bl')
             
         Returns:
             str: Translated query in English
@@ -295,19 +367,27 @@ class LawYaarWhatsAppService:
             gemini_api_key = os.getenv('GEMINI_API_KEY')
             if not gemini_api_key:
                 logger.error("GEMINI_API_KEY not found - cannot translate query")
-                return urdu_text  # Return original if can't translate
+                return text  # Return original if can't translate
             
             genai.configure(api_key=gemini_api_key)
             model = genai.GenerativeModel('gemini-2.5-flash')
             
-            translation_prompt = f"""Translate this Urdu legal query to English. Keep it concise and maintain the legal intent.
+            language_names = {
+                'ur': 'Urdu',
+                'sd': 'Sindhi', 
+                'bl': 'Balochi'
+            }
+            
+            language_name = language_names.get(source_language, 'Urdu')
+            
+            translation_prompt = f"""Translate this {language_name} legal query to English. Keep it concise and maintain the legal intent.
 
-URDU QUERY:
-{urdu_text}
+{language_name.upper()} QUERY:
+{text}
 
 ENGLISH TRANSLATION (only the translation, nothing else):"""
             
-            logger.info("Translating Urdu query to English for vector search...")
+            logger.info(f"Translating {language_name} query to English for vector search...")
             response = model.generate_content(translation_prompt)
             english_text = response.text.strip()
             logger.info(f"Translated query: {english_text}")
@@ -316,17 +396,18 @@ ENGLISH TRANSLATION (only the translation, nothing else):"""
             
         except Exception as e:
             logger.error(f"Translation error: {e}")
-            return urdu_text  # Fallback to original
+            return text  # Fallback to original
     
-    async def _translate_to_urdu(self, english_text: str) -> str:
+    async def _translate_to_target_language(self, english_text: str, target_language: str) -> str:
         """
-        Translate English legal response to Urdu using Gemini API.
+        Translate English legal response to target language using Gemini API.
         
         Args:
             english_text: Legal response in English
+            target_language: Target language code ('ur', 'sd', 'bl')
             
         Returns:
-            str: Translated text in Urdu
+            str: Translated text in target language
         """
         try:
             import google.generativeai as genai
@@ -334,28 +415,36 @@ ENGLISH TRANSLATION (only the translation, nothing else):"""
             
             gemini_api_key = os.getenv('GEMINI_API_KEY')
             if not gemini_api_key:
-                logger.error("GEMINI_API_KEY not found - cannot translate to Urdu")
+                logger.error(f"GEMINI_API_KEY not found - cannot translate to {target_language}")
                 return english_text  # Return original if can't translate
             
             genai.configure(api_key=gemini_api_key)
             model = genai.GenerativeModel('gemini-2.5-flash')
             
-            translation_prompt = f"""Translate the following legal analysis from English to Urdu. 
+            language_names = {
+                'ur': 'Urdu',
+                'sd': 'Sindhi',
+                'bl': 'Balochi'
+            }
+            
+            language_name = language_names.get(target_language, 'Urdu')
+            
+            translation_prompt = f"""Translate the following legal analysis from English to {language_name}. 
 Maintain all legal terminology accuracy and preserve the structure (headings, bullet points, etc.).
 Keep case citations in English but translate the rest.
-Be professional and formal in Urdu.
+Be professional and formal in {language_name}.
 
 ENGLISH TEXT:
 {english_text}
 
-URDU TRANSLATION:"""
+{language_name.upper()} TRANSLATION:"""
             
-            logger.info("Translating legal response to Urdu...")
+            logger.info(f"Translating legal response to {language_name}...")
             response = model.generate_content(translation_prompt)
-            urdu_text = response.text.strip()
+            translated_text = response.text.strip()
             
-            logger.info(f"✅ Translation successful ({len(urdu_text)} characters)")
-            return urdu_text
+            logger.info(f"✅ Translation successful ({len(translated_text)} characters)")
+            return translated_text
             
         except Exception as e:
             logger.error(f"❌ Translation error: {e}")

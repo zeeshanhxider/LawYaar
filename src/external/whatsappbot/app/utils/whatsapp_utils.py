@@ -452,7 +452,7 @@ def process_whatsapp_message(body):
                 
                 # Synthesize rejection message to voice
                 print("🗣️ Synthesizing rejection response to voice...")
-                audio_path_tts = synthesize_speech(rejection_response)
+                audio_path_tts = synthesize_speech(rejection_response, detected_language)
                 
                 if audio_path_tts:
                     # Send voice reply
@@ -491,7 +491,7 @@ def process_whatsapp_message(body):
                     # Send voice response first
                     print(f"✅ Using voice summary ({len(voice_summary)} chars)")
                     print("🗣️ Synthesizing voice response...")
-                    audio_path_tts = synthesize_speech(voice_summary)
+                    audio_path_tts = synthesize_speech(voice_summary, detected_language)
                     
                     if audio_path_tts:
                         print(f"📤 Sending voice response to {recipient}...")
@@ -505,6 +505,18 @@ def process_whatsapp_message(body):
                     # Send PDF offer as TEXT message (after voice)
                     print("📄 Sending PDF offer message...")
                     if detected_language == 'ur':
+                        pdf_offer = (
+                            "📄 کیا آپ تفصیلی رپورٹ PDF میں چاہتے ہیں؟\n\n"
+                            "✅ ہاں - PDF بھیجیں\n"
+                            "❌ نہیں - شکریہ"
+                        )
+                    elif detected_language == 'sd':
+                        pdf_offer = (
+                            "📄 ڇا توهان تفصيلي رپورٽ PDF ۾ چاهيو ٿا؟\n\n"
+                            "✅ ها - PDF موڪليو\n"
+                            "❌ نه - مهرباني"
+                        )
+                    elif detected_language == 'bl':
                         pdf_offer = (
                             "📄 کیا آپ تفصیلی رپورٹ PDF میں چاہتے ہیں؟\n\n"
                             "✅ ہاں - PDF بھیجیں\n"
@@ -573,7 +585,7 @@ def process_whatsapp_message(body):
             
             # 4. Convert response to speech (UpliftAI returns streaming URL)
             print("🗣️ Step 4: Synthesizing speech with UpliftAI...")
-            audio_path_tts = synthesize_speech(ai_response)
+            audio_path_tts = synthesize_speech(ai_response, 'en')  # Text messages are in English
             print(f"�️ Audio file saved to: {audio_path_tts}")
             
             if not audio_path_tts:
