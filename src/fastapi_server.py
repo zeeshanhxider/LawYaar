@@ -6,8 +6,15 @@ import asyncio
 import json
 import uuid
 import os
+import sys
 from datetime import datetime, timedelta
 import logging
+from pathlib import Path
+
+# Add src directory to Python path for module imports
+src_path = Path(__file__).parent
+if str(src_path) not in sys.path:
+    sys.path.insert(0, str(src_path))
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)

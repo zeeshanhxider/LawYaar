@@ -672,48 +672,62 @@ def process_whatsapp_message(body):
 
         # Gemini Integration with RAG
         print("🤖 Generating AI response with Gemini + RAG...")
-        response = generate_response(message_body, wa_id, name, message_source='text')  # ✅ TEXT queries get summary + PDF
+        response = generate_response(message_body, wa_id, name, message_source='text')  # ✅ TEXT queries now get summary + PDF offer (same as voice)
         
         # Handle different response types
         if isinstance(response, dict):
             response_type = response.get('type', '')
             
-            # Handle TEXT with PDF (NEW: Summary + PDF together)
-            if response_type == 'text_with_pdf':
-                print("📄 TEXT with PDF response detected!")
+            # ✅ Handle text response with PDF prep (SAME AS VOICE)
+            if response_type == 'text_with_pdf_prep':
+                print("📄 Text response with PDF prep detected!")
                 text_summary = response.get('text_summary', '')
-                pdf_path = response.get('pdf_path')
-                pdf_message = response.get('pdf_message', 'Here is your detailed report.')
+                research_data = response.get('research_data', {})
+                detected_language = response.get('detected_language', 'en')
                 
-                # Send text summary FIRST
-                print(f"📤 Sending text summary ({len(text_summary)} chars)...")
-                summary_data = get_text_message_input(recipient, text_summary, context_message_id=message_id)
+                # Send text summary first
+                print(f"✅ Using text summary ({len(text_summary)} chars)")
+                print("📤 Sending text summary...")
+                text_summary_formatted = process_text_for_whatsapp(text_summary)
+                summary_data = get_text_message_input(recipient, text_summary_formatted, context_message_id=message_id)
                 send_message(summary_data)
                 
-                # Send PDF document with message
-                if pdf_path and os.path.exists(pdf_path):
-                    print(f"📤 Sending PDF document: {pdf_path}")
-                    send_document(recipient, pdf_path, caption=pdf_message, context_message_id=message_id)
-                    
-                    # Cleanup PDF file
-                    try:
-                        os.remove(pdf_path)
-                        print(f"🗑️ Cleaned up PDF: {pdf_path}")
-                    except:
-                        pass
+                # Send PDF offer as separate TEXT message (SAME AS VOICE)
+                print("📄 Sending PDF offer message...")
+                if detected_language == 'ur':
+                    pdf_offer = (
+                        "📄 کیا آپ تفصیلی رپورٹ PDF میں چاہتے ہیں؟\n\n"
+                        "✅ ہاں - PDF بھیجیں\n"
+                        "❌ نہیں - شکریہ"
+                    )
+                elif detected_language == 'sd':
+                    pdf_offer = (
+                        "📄 ڇا توهان تفصيلي رپورٽ PDF ۾ چاهيو ٿا؟\n\n"
+                        "✅ ها - PDF موڪليو\n"
+                        "❌ نه - مهرباني"
+                    )
+                elif detected_language == 'bl':
+                    pdf_offer = (
+                        "📄 کیا آپ تفصیلی رپورٹ PDF میں چاہتے ہیں؟\n\n"
+                        "✅ ہاں - PDF بھیجیں\n"
+                        "❌ نہیں - شکریہ"
+                    )
                 else:
-                    print("⚠️ PDF path not found or doesn't exist")
+                    pdf_offer = (
+                        "📄 Would you like a detailed PDF report?\n\n"
+                        "✅ Yes - Send PDF\n"
+                        "❌ No - No thanks"
+                    )
+                
+                offer_data = get_text_message_input(recipient, pdf_offer, context_message_id=message_id)
+                send_message(offer_data)
+                print("✅ PDF offer sent!")
+                
+                # PDF will be generated on-demand when user says "yes"
+                print("💡 PDF will be generated when user responds 'yes'")
                 return
             
-            # Handle voice response with PDF prep (shouldn't happen for text, but handle anyway)
-            elif response_type == 'voice_with_pdf_prep':
-                print("📄 Voice response with PDF prep detected in text handler!")
-                voice_summary = response.get('voice_summary', '')
-                # For text messages, just use the summary as regular text
-                response = voice_summary
-                print(f"✅ Using voice summary as text ({len(response)} chars)")
-            
-            # Handle explicit PDF response (legacy)
+            # Handle explicit PDF response (when user says "yes" to offer)
             elif response_type == 'pdf_response':
                 print("📄 PDF response detected!")
                 pdf_path = response.get('pdf_path')
@@ -735,12 +749,14 @@ def process_whatsapp_message(body):
                         print(f"🗑️ Cleaned up PDF: {pdf_path}")
                     except:
                         pass
+                else:
+                    print("⚠️ PDF path not found or doesn't exist")
                 return
             
             # Unknown dict type - extract message if available
             else:
                 print(f"⚠️ Unknown response type: {response_type}")
-                response = response.get('message', str(response))
+                response = str(response.get('voice_summary', '') or response.get('text_summary', '') or response.get('message', '') or 'Error processing response')
         
         # At this point, response should be a string
         if not isinstance(response, str):
@@ -748,11 +764,11 @@ def process_whatsapp_message(body):
             response = str(response)
         
         # Normal text response
-        print(f"🤖 AI Response generated: {response}")
+        print(f"🤖 AI Response generated ({len(response)} chars): {response[:100]}...")
         response = process_text_for_whatsapp(response)
-        print(f"✅ Response formatted for WhatsApp: {response}")
+        print(f"✅ Response formatted for WhatsApp")
 
-        logging.info(f"📤 Sending text reply to {recipient}: {response}")
+        logging.info(f"📤 Sending text reply to {recipient}")
         print(f"📤 Sending text reply to {recipient}...")
         
         # Send text message to the sender as a reply (with context)
