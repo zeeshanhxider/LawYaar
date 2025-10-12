@@ -1316,187 +1316,146 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         # Container for PDF elements
         story = []
 
-        # Enhanced Styles with Professional Formatting
+        # Simplified universal font and styles
+        from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_JUSTIFY, TA_RIGHT
+        from reportlab.lib.colors import black
+        from reportlab.platypus import HRFlowable
+        import re
+        base_font = urdu_font if 'urdu_font' in locals() else 'Helvetica'
         styles = getSampleStyleSheet()
+        # Helper to add or update styles safely (StyleSheet1 doesn't support deletion)
+        def ensure_style(paragraph_style):
+            try:
+                # If style exists, update key attributes
+                existing = styles[paragraph_style.name]
+                for attr in ('fontName', 'fontSize', 'alignment', 'spaceBefore', 'spaceAfter', 'leading'):
+                    if hasattr(paragraph_style, attr):
+                        try:
+                            setattr(existing, attr, getattr(paragraph_style, attr))
+                        except Exception:
+                            pass
+            except Exception:
+                # Style doesn't exist; add it
+                styles.add(paragraph_style)
 
-        # Title Style
-        styles.add(ParagraphStyle(
+        # Define and ensure ReportTitle and SectionHeader
+        rpt_title = ParagraphStyle(
             name='ReportTitle',
             parent=styles['Title'],
-            fontName='Helvetica-Bold',
-            fontSize=24,
+            fontName=base_font,
+            fontSize=20,
             alignment=TA_CENTER,
-            textColor=darkblue,
-            spaceAfter=20,
-            leading=28
-        ))
+            spaceAfter=16,
+            leading=24
+        )
+        ensure_style(rpt_title)
 
-        # Subtitle Style
-        styles.add(ParagraphStyle(
-            name='ReportSubtitle',
-            parent=styles['Heading2'],
-            fontName='Helvetica-Bold',
-            fontSize=14,
-            alignment=TA_CENTER,
-            textColor=blue,
-            spaceAfter=15,
-            leading=18
-        ))
-
-        # Section Header Style
-        styles.add(ParagraphStyle(
+        sec_header = ParagraphStyle(
             name='SectionHeader',
             parent=styles['Heading1'],
-            fontName='Helvetica-Bold',
-            fontSize=16,
-            alignment=TA_LEFT,
-            textColor=darkblue,
-            spaceBefore=15,
-            spaceAfter=10,
-            leading=20,
-            borderColor=blue,
-            borderWidth=0,
-            borderPadding=5
-        ))
-
-        # Subsection Header Style
-        styles.add(ParagraphStyle(
-            name='SubsectionHeader',
-            parent=styles['Heading2'],
-            fontName='Helvetica-Bold',
+            fontName=base_font,
             fontSize=14,
             alignment=TA_LEFT,
-            textColor=HexColor('#2E4057'),
             spaceBefore=10,
             spaceAfter=8,
             leading=18
-        ))
-
-        # Body Text Style with better font handling
-        if 'BodyText' not in styles:
-            styles.add(ParagraphStyle(
-                name='BodyText',
-                parent=styles['Normal'],
-                fontName=urdu_font,
-                fontSize=11,
-                alignment=TA_JUSTIFY,
-                leading=14,
-                spaceAfter=6,
-                encoding='utf-8'  # Ensure UTF-8 encoding
-            ))
-        else:
-            # Style already exists, modify the existing one
-            logger.info("BodyText style already exists, modifying existing style")
-            styles['BodyText'].fontName = urdu_font
-            styles['BodyText'].fontSize = 11
-            styles['BodyText'].alignment = TA_JUSTIFY
-            styles['BodyText'].leading = 14
-            styles['BodyText'].spaceAfter = 6
-
-        # Urdu-specific text style for better word formation
-        styles.add(ParagraphStyle(
-            name='UrduText',
+        )
+        ensure_style(sec_header)
+        body_style = ParagraphStyle(
+            name='BodyText',
             parent=styles['Normal'],
-            fontName=urdu_font,
-            fontSize=13,  # Slightly larger for better readability
-            alignment=TA_LEFT,  # Left-aligned for mixed content, but can be changed to TA_RIGHT for pure Urdu
-            leading=16,
-            spaceAfter=8,
-            encoding='utf-8',
-            wordSpace=2,  # Better word spacing for Urdu
-            allowWidows=0,  # Prevent single lines at page breaks
-            allowOrphans=0,  # Prevent orphaned lines
-        ))
+            fontName=base_font,
+            fontSize=11,
+            alignment=TA_JUSTIFY,
+            leading=14,
+            spaceAfter=6
+        )
+        ensure_style(body_style)
 
-        # Urdu title style
-        styles.add(ParagraphStyle(
-            name='UrduTitle',
-            parent=styles['Heading2'],
-            fontName=urdu_font,
-            fontSize=16,
-            alignment=TA_LEFT,
-            textColor=darkblue,
-            spaceAfter=10,
-            leading=20,
-            encoding='utf-8'
-        ))
-
-        # Pure Urdu content style (right-aligned)
-        styles.add(ParagraphStyle(
-            name='UrduContent',
-            parent=styles['Normal'],
-            fontName=urdu_font,
-            fontSize=14,
-            alignment=TA_RIGHT,  # Right-aligned for pure Urdu content
-            leading=18,
-            spaceAfter=8,
-            encoding='utf-8',
-            wordSpace=3,  # More spacing for Urdu words
-        ))
-
-        # Metadata Style
-        styles.add(ParagraphStyle(
-            name='Metadata',
-            parent=styles['Normal'],
-            fontName='Helvetica',
-            fontSize=10,
-            alignment=TA_LEFT,
-            textColor=HexColor('#34495E'),
-            leading=12
-        ))
-
-        # Footer Style
-        styles.add(ParagraphStyle(
-            name='Footer',
-            parent=styles['Normal'],
-            fontName='Helvetica-Oblique',
-            fontSize=9,
-            alignment=TA_CENTER,
-            textColor=gray,
-            leading=11
-        ))
-
-        # Highlight Box Style
-        styles.add(ParagraphStyle(
+        # Additional styles used later in the document
+        highlight_box = ParagraphStyle(
             name='HighlightBox',
             parent=styles['Normal'],
-            fontName='Helvetica-Bold',
+            fontName=base_font,
+            fontSize=11,
+            alignment=TA_LEFT,
+            leading=14,
+            spaceBefore=6,
+            spaceAfter=6
+        )
+        ensure_style(highlight_box)
+
+        subsection = ParagraphStyle(
+            name='SubsectionHeader',
+            parent=styles['Heading2'],
+            fontName=base_font,
             fontSize=12,
             alignment=TA_LEFT,
-            textColor=white,
-            backColor=HexColor('#3498DB'),
-            borderColor=HexColor('#2980B9'),
-            borderWidth=1,
-            borderPadding=8,
+            spaceBefore=6,
+            spaceAfter=6,
             leading=16
-        ))
+        )
+        ensure_style(subsection)
+
+        footer_style = ParagraphStyle(
+            name='Footer',
+            parent=styles['Normal'],
+            fontName=base_font,
+            fontSize=9,
+            alignment=TA_CENTER,
+            leading=12,
+            spaceBefore=6,
+            spaceAfter=6
+        )
+        ensure_style(footer_style)
+
+        # Urdu-specific styles (used by get_text_style)
+        urdu_content = ParagraphStyle(
+            name='UrduContent',
+            parent=styles['Normal'],
+            fontName=base_font,
+            fontSize=12,
+            alignment=TA_RIGHT,
+            leading=16,
+            spaceAfter=6
+        )
+        ensure_style(urdu_content)
+
+        urdu_text_style = ParagraphStyle(
+            name='UrduText',
+            parent=styles['Normal'],
+            fontName=base_font,
+            fontSize=11,
+            alignment=TA_LEFT,
+            leading=14,
+            spaceAfter=6
+        )
+        ensure_style(urdu_text_style)
 
         # ================================
         # HEADER SECTION - Professional Branding (Localized)
         # ================================
 
-        # Main Title with Enhanced Styling (Localized)
+        # Main Title (no emoji, no color)
         if detected_language == 'ur':
-            title_text = "🏛️ لاء یار قانونی تحقیق کی رپورٹ"
+            title_text = "لاء یار قانونی تحقیق کی رپورٹ"
             subtitle_text = "سپریم کورٹ آف پاکستان کی کیس لاء کا جامع تجزیہ"
         elif detected_language == 'sd':
-            title_text = "🏛️ لاء يار قانوني تحقيق جي رپورٽ"
+            title_text = "لاء يار قانوني تحقيق جي رپورٽ"
             subtitle_text = "سپریم کورٽ آف پاڪستان جي ڪيس لاء جو جامع تجزيو"
         elif detected_language == 'bl':
-            title_text = "🏛️ لاء یار قانونی تحقیق کی رپورٹ"
+            title_text = "لاء یار قانونی تحقیق کی رپورٹ"
             subtitle_text = "سپریم کورٹ آف پاکستان کی کیس لاء کا جامع تجزیہ"
         else:
-            title_text = "🏛️ LAWYAAR LEGAL RESEARCH REPORT"
+            title_text = "LAWYAAR LEGAL RESEARCH REPORT"
             subtitle_text = "Comprehensive Supreme Court of Pakistan Case Law Analysis"
 
         title = create_paragraph(title_text, styles['ReportTitle'])
         story.append(title)
-
-        subtitle = create_paragraph(subtitle_text, styles['ReportSubtitle'])
+        subtitle = create_paragraph(subtitle_text, styles['BodyText'])
         story.append(subtitle)
-
-        # Decorative line
-        story.append(Spacer(1, 10))
+        story.append(Spacer(1, 8))
+        story.append(HRFlowable(width="100%", thickness=1, color=black, spaceBefore=4, spaceAfter=8))
 
         # ================================
         # METADATA SECTION - Enhanced Presentation (Localized)
@@ -1507,17 +1466,17 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
 
         if detected_language == 'ur':
             metadata_data = [
-                ['📋 رپورٹ کی تفصیلات', ''],
-                ['جناب کے لیے تیار کی گئی:', name],
-                ['رپورٹ کی تاریخ:', current_time.strftime('%B %d, %Y')],
-                ['رپورٹ کا وقت:', current_time.strftime('%I:%M %p')],
-                ['کیسز کا تجزیہ:', f'{doc_count} متعلقہ کیسز'],
-                ['زبان:', 'اردو/انگریزی'],
-                ['رپورٹ آئی ڈی:', f'LY-{wa_id}-{current_time.strftime("%Y%m%d%H%M")}'],
+                [create_paragraph('رپورٹ کی تفصیلات', styles['BodyText']), ''],
+                [create_paragraph('جناب کے لیے تیار کی گئی:', styles['BodyText']), create_paragraph(name, styles['BodyText'])],
+                [create_paragraph('رپورٹ کی تاریخ:', styles['BodyText']), create_paragraph(current_time.strftime('%B %d, %Y'), styles['BodyText'])],
+                [create_paragraph('رپورٹ کا وقت:', styles['BodyText']), create_paragraph(current_time.strftime('%I:%M %p'), styles['BodyText'])],
+                [create_paragraph('کیسز کا تجزیہ:', styles['BodyText']), create_paragraph(f'{doc_count} متعلقہ کیسز', styles['BodyText'])],
+                [create_paragraph('زبان:', styles['BodyText']), create_paragraph('اردو/انگریزی', styles['BodyText'])],
+                [create_paragraph('رپورٹ آئی ڈی:', styles['BodyText']), create_paragraph(f'LY-{wa_id}-{current_time.strftime("%Y%m%d%H%M")}', styles['BodyText'])],
             ]
         elif detected_language == 'sd':
             metadata_data = [
-                ['📋 رپورٽ جي تفصيل', ''],
+                ['رپورٽ جي تفصيل', ''],
                 ['جناب لاءِ تيار ڪيل:', name],
                 ['رپورٽ جي تاريخ:', current_time.strftime('%B %d, %Y')],
                 ['رپورٽ جو وقت:', current_time.strftime('%I:%M %p')],
@@ -1527,7 +1486,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             ]
         elif detected_language == 'bl':
             metadata_data = [
-                ['📋 رپورٹ کی تفصیلات', ''],
+                ['رپورٹ کی تفصیلات', ''],
                 ['جناب کے لیے تیار کی گئی:', name],
                 ['رپورٹ کی تاریخ:', current_time.strftime('%B %d, %Y')],
                 ['رپورٹ کا وقت:', current_time.strftime('%I:%M %p')],
@@ -1537,26 +1496,25 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             ]
         else:
             metadata_data = [
-                ['📋 Report Details', ''],
-                ['Generated for:', name],
-                ['Report Date:', current_time.strftime('%B %d, %Y')],
-                ['Report Time:', current_time.strftime('%I:%M %p')],
-                ['Cases Analyzed:', f'{doc_count} relevant cases'],
-                ['Language:', 'English'],
-                ['Report ID:', f'LY-{wa_id}-{current_time.strftime("%Y%m%d%H%M")}'],
+                [create_paragraph('Report Details', styles['BodyText']), ''],
+                [create_paragraph('Generated for:', styles['BodyText']), create_paragraph(name, styles['BodyText'])],
+                [create_paragraph('Report Date:', styles['BodyText']), create_paragraph(current_time.strftime('%B %d, %Y'), styles['BodyText'])],
+                [create_paragraph('Report Time:', styles['BodyText']), create_paragraph(current_time.strftime('%I:%M %p'), styles['BodyText'])],
+                [create_paragraph('Cases Analyzed:', styles['BodyText']), create_paragraph(f'{doc_count} relevant cases', styles['BodyText'])],
+                [create_paragraph('Language:', styles['BodyText']), create_paragraph('English', styles['BodyText'])],
+                [create_paragraph('Report ID:', styles['BodyText']), create_paragraph(f'LY-{wa_id}-{current_time.strftime("%Y%m%d%H%M")}', styles['BodyText'])],
             ]
 
         # Create table with styling
         metadata_table = Table(metadata_data, colWidths=[2*inch, 4*inch])
         metadata_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), HexColor('#ECF0F1')),
-            ('TEXTCOLOR', (0, 0), (-1, 0), darkblue),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('TEXTCOLOR', (0, 0), (-1, 0), black),
+            ('FONTNAME', (0, 0), (-1, 0), base_font),
             ('FONTSIZE', (0, 0), (-1, 0), 12),
             ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTNAME', (0, 1), (-1, -1), base_font),
             ('FONTSIZE', (0, 1), (-1, -1), 10),
-            ('GRID', (0, 0), (-1, -1), 0.5, lightgrey),
+            ('GRID', (0, 0), (-1, -1), 0.5, gray),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('LEFTPADDING', (0, 0), (-1, -1), 8),
             ('RIGHTPADDING', (0, 0), (-1, -1), 8),
@@ -1571,7 +1529,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         # TABLE OF CONTENTS
         # ================================
 
-        toc_title = create_paragraph("<b>📖 TABLE OF CONTENTS</b>", styles['SectionHeader'])
+        toc_title = create_paragraph("<b>TABLE OF CONTENTS</b>", styles['SectionHeader'])
         story.append(toc_title)
         story.append(Spacer(1, 10))
 
@@ -1702,8 +1660,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         query_box_data = [[create_paragraph(f"<b>{query_label}</b> {escape(query)}", styles['BodyText'])]]
         query_table = Table(query_box_data, colWidths=[7*inch])
         query_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), HexColor('#F8F9FA')),
-            ('BOX', (0, 0), (-1, -1), 1, HexColor('#DEE2E6')),
+            ('BOX', (0, 0), (-1, -1), 1, black),
             ('LEFTPADDING', (0, 0), (-1, -1), 12),
             ('RIGHTPADDING', (0, 0), (-1, -1), 12),
             ('TOPPADDING', (0, 0), (-1, -1), 10),
@@ -1872,44 +1829,41 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
                 # Case card in a table format (Localized)
                 if detected_language == 'ur':
                     case_data = [
-                        [f'🏛️ کیس {i}: {case_no}', ''],
-                        ['عنوان:', case_title if case_title else 'N/A'],
-                        ['اقتباس:', case_no],
-                        ['دستاویز لنک:', f'<a href="{url}">{url}</a>' if url else 'N/A'],
+                        [create_paragraph(f'کیس {i}: {case_no}', styles['BodyText']), ''],
+                        [create_paragraph('عنوان:', styles['BodyText']), create_paragraph(case_title if case_title else 'N/A', styles['BodyText'])],
+                        [create_paragraph('اقتباس:', styles['BodyText']), create_paragraph(case_no, styles['BodyText'])],
+                        [create_paragraph('دستاویز لنک:', styles['BodyText']), create_paragraph(f'<a href="{url}">{url}</a>' if url else 'N/A', styles['BodyText'])],
                     ]
                 elif detected_language == 'sd':
                     case_data = [
-                        [f'🏛️ ڪيس {i}: {case_no}', ''],
-                        ['عنوان:', case_title if case_title else 'N/A'],
-                        ['اقتباس:', case_no],
-                        ['دستاويز لنڪ:', f'<a href="{url}">{url}</a>' if url else 'N/A'],
+                        [create_paragraph(f'ڪيس {i}: {case_no}', styles['BodyText']), ''],
+                        [create_paragraph('عنوان:', styles['BodyText']), create_paragraph(case_title if case_title else 'N/A', styles['BodyText'])],
+                        [create_paragraph('اقتباس:', styles['BodyText']), create_paragraph(case_no, styles['BodyText'])],
+                        [create_paragraph('دستاويز لنڪ:', styles['BodyText']), create_paragraph(f'<a href="{url}">{url}</a>' if url else 'N/A', styles['BodyText'])],
                     ]
                 elif detected_language == 'bl':
                     case_data = [
-                        [f'🏛️ کیس {i}: {case_no}', ''],
-                        ['عنوان:', case_title if case_title else 'N/A'],
-                        ['اقتباس:', case_no],
-                        ['دستاویز لنک:', f'<a href="{url}">{url}</a>' if url else 'N/A'],
+                        [create_paragraph(f'کیس {i}: {case_no}', styles['BodyText']), ''],
+                        [create_paragraph('عنوان:', styles['BodyText']), create_paragraph(case_title if case_title else 'N/A', styles['BodyText'])],
+                        [create_paragraph('اقتباس:', styles['BodyText']), create_paragraph(case_no, styles['BodyText'])],
+                        [create_paragraph('دستاویز لنک:', styles['BodyText']), create_paragraph(f'<a href="{url}">{url}</a>' if url else 'N/A', styles['BodyText'])],
                     ]
                 else:
                     case_data = [
-                        [f'🏛️ Case {i}: {case_no}', ''],
-                        ['Title:', case_title if case_title else 'N/A'],
-                        ['Citation:', case_no],
-                        ['Document Link:', f'<a href="{url}">{url}</a>' if url else 'N/A'],
+                        [create_paragraph(f'Case {i}: {case_no}', styles['BodyText']), ''],
+                        [create_paragraph('Title:', styles['BodyText']), create_paragraph(case_title if case_title else 'N/A', styles['BodyText'])],
+                        [create_paragraph('Citation:', styles['BodyText']), create_paragraph(case_no, styles['BodyText'])],
+                        [create_paragraph('Document Link:', styles['BodyText']), create_paragraph(f'<a href="{url}">{url}</a>' if url else 'N/A', styles['BodyText'])],
                     ]
 
                 case_table = Table(case_data, colWidths=[1.5*inch, 5.5*inch])
                 case_table.setStyle(TableStyle([
-                    ('BACKGROUND', (0, 0), (-1, 0), HexColor('#3498DB')),
-                    ('TEXTCOLOR', (0, 0), (-1, 0), white),
-                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTNAME', (0, 0), (-1, 0), base_font),
                     ('FONTSIZE', (0, 0), (-1, 0), 12),
-                    ('BACKGROUND', (0, 1), (-1, -1), HexColor('#ECF0F1')),
-                    ('TEXTCOLOR', (0, 1), (-1, -1), black),
-                    ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                    ('TEXTCOLOR', (0, 0), (-1, -1), black),
+                    ('FONTNAME', (0, 1), (-1, -1), base_font),
                     ('FONTSIZE', (0, 1), (-1, -1), 10),
-                    ('GRID', (0, 0), (-1, -1), 0.5, lightgrey),
+                    ('GRID', (0, 0), (-1, -1), 0.5, gray),
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                     ('LEFTPADDING', (0, 0), (-1, -1), 8),
                     ('RIGHTPADDING', (0, 0), (-1, -1), 8),

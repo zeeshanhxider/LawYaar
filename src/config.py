@@ -36,7 +36,7 @@ class VectorDBConfig:
     """Configuration for vector database"""
     
     COLLECTION_NAME = "legal_cases"
-    EMBEDDING_MODEL = "all-mpnet-base-v2"  # Better sentence transformer model for legal text
+    EMBEDDING_MODEL = "all-MiniLM-L6-v2"  # 384-dimensional model to match existing indexed data
     SIMILARITY_THRESHOLD = 0.01  # Very low threshold to capture more results (was 0.05, actual scores: 0.05-0.23)
     MAX_RESULTS = 100  # Increased for better coverage of legal concepts
     MAX_DOCS = 3  # Maximum number of documents to process for final response
