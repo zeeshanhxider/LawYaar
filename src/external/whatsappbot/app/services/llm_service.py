@@ -613,103 +613,81 @@ VOICE SUMMARY:"""
             else:
                 voice_summary = "Here's what I found from the legal research:"
         
-        # ✅ DIFFERENT HANDLING FOR TEXT vs VOICE
-        if message_source == 'text':
-            # For TEXT queries: Send SUMMARY + PDF immediately
-            logger.info(f"📄 TEXT query detected - generating executive summary + PDF")
-            
-            # Create EXECUTIVE SUMMARY (NO metadata - just legal findings)
-            text_summary_prompt = f"""You are a professional legal assistant providing an executive summary to a literate user via WhatsApp.
+        # ✅ SAME HANDLING FOR BOTH TEXT AND VOICE - Ask first, send PDF on confirmation
+        # Create TEXT SUMMARY (concise, professional)
+        logger.info(f"📄 Query detected - generating summary with PDF offer")
+        
+        # Create concise summary for text users (cleaner than voice summary)
+        text_summary_prompt = f"""You are a professional legal assistant providing a summary to a user via WhatsApp.
 
-YOUR TASK: Create a DENSE, EXECUTIVE SUMMARY that:
-- DIRECTLY ANSWERS the user's legal question with the key findings
-- Focuses ONLY on legal principles, rights, procedures, and outcomes
-- Synthesizes findings from multiple cases into coherent principles
+YOUR TASK: Create a CONCISE SUMMARY that:
+- DIRECTLY ANSWERS the user's legal question with key findings
+- Focuses on legal principles, rights, procedures, and outcomes
 - NO case names, NO judge names, NO dates, NO citation numbers
-- NO metadata - save all that for the detailed PDF
-- Uses bullet points for clarity
+- NO metadata - that will be in the optional PDF
+- Uses bullet points for clarity if helpful
 - Professional but accessible language
 - In {'Urdu' if detected_language == 'ur' else 'Sindhi' if detected_language == 'sd' else 'Balochi' if detected_language == 'bl' else 'English'}
-- Keep it concise and actionable (200-300 words)
+- Keep it concise (200-300 words)
 
 USER'S QUESTION: {message}
 
-DETAILED LEGAL RESEARCH WITH ALL FINDINGS:
+DETAILED LEGAL RESEARCH:
 {full_legal_response}
 
 DOCUMENT COUNT: {doc_count} relevant cases analyzed
 
-CRITICAL RULES:
-- Extract ONLY the legal principles and findings
-- DO NOT mention case names (e.g., "Ali v. Hassan") 
-- DO NOT mention judges, courts, or dates
-- DO NOT include citations or reference numbers
-- Focus on WHAT the law says, not WHERE it comes from
-- End with a brief note that detailed citations are in the attached PDF
+CRITICAL: Extract ONLY the legal principles. DO NOT include case citations - those are for the PDF.
 
-EXECUTIVE SUMMARY:"""
+SUMMARY:"""
+        
+        try:
+            text_summary = call_llm(text_summary_prompt).strip()
+            logger.info(f"✅ Generated summary: {len(text_summary)} chars")
+        except Exception as e:
+            logger.error(f"⚠️ LLM API error generating summary: {e}")
+            # Fallback: Use voice summary
+            text_summary = voice_summary
+        
+        # Store research data for later PDF generation (PENDING state)
+        research_context = {
+            "type": "pending_pdf_request",  # Mark as pending, not fulfilled
+            "query": message,
+            "full_legal_response": full_legal_response,
+            "pdf_links": pdf_links,
+            "doc_count": doc_count,
+            "detected_language": detected_language,
+            "text_summary": text_summary
+        }
+        
+        # Store in chat history
+        try:
+            chat_history = check_if_chat_exists(wa_id)
+            if not chat_history:
+                chat_history = []
             
-            try:
-                text_summary = call_llm(text_summary_prompt).strip()
-                logger.info(f"✅ Generated executive summary: {len(text_summary)} chars")
-            except Exception as e:
-                logger.error(f"⚠️ LLM API error generating text summary: {e}")
-                # Fallback: Use voice summary
-                text_summary = voice_summary
-            
-            # Store research data for chat history
-            research_context = {
-                "type": "pdf_fulfilled",  # Mark as already fulfilled
-                "query": message,
-                "full_legal_response": full_legal_response,
-                "pdf_links": pdf_links,
-                "doc_count": doc_count,
-                "detected_language": detected_language,
-                "text_summary": text_summary
+            chat_history.append({"role": "user", "parts": [message]})
+            chat_history.append({
+                "role": "model", 
+                "parts": [text_summary],
+                "research_data": research_context
+            })
+            store_chat(wa_id, chat_history)
+        except Exception as e:
+            logger.error(f"Error storing chat history: {e}")
+        
+        # ✅ SAME HANDLING FOR BOTH TEXT AND VOICE
+        # Return structured response with summary and research data
+        # The handler will send summary first, then PDF offer as separate message
+        if message_source == 'text':
+            # For text: return SAME structure as voice (text_summary + research_data)
+            logger.info(f"✅ Text summary with PDF prep complete: {len(text_summary)} characters")
+            return {
+                "type": "text_with_pdf_prep",  # Same pattern as voice_with_pdf_prep
+                "text_summary": text_summary,
+                "research_data": research_context,
+                "detected_language": detected_language
             }
-            
-            # Generate PDF immediately
-            pdf_path = generate_pdf_report(wa_id, name, research_context)
-            
-            # Store in chat history
-            try:
-                chat_history = check_if_chat_exists(wa_id)
-                if not chat_history:
-                    chat_history = []
-                
-                chat_history.append({"role": "user", "parts": [message]})
-                chat_history.append({
-                    "role": "model", 
-                    "parts": [text_summary],
-                    "research_data": research_context
-                })
-                store_chat(wa_id, chat_history)
-            except Exception as e:
-                logger.error(f"Error storing chat history: {e}")
-            
-            # Return BOTH summary AND PDF
-            if pdf_path:
-                if detected_language == 'ur':
-                    pdf_message = f"📄 یہاں {doc_count} متعلقہ کیسز کے ساتھ تفصیلی PDF رپورٹ ہے۔"
-                elif detected_language == 'sd':
-                    pdf_message = f"📄 هتي {doc_count} لاڳاپيل ڪيسز سان گڏ تفصيلي PDF رپورٽ آهي."
-                elif detected_language == 'bl':
-                    pdf_message = f"📄 اتي {doc_count} متعلقہ کیسز کے ساتھ تفصیلی PDF رپورٹ ہے۔"
-                else:
-                    pdf_message = f"📄 Here's the detailed PDF report with {doc_count} relevant cases."
-                return {
-                    "type": "text_with_pdf",
-                    "text_summary": text_summary,
-                    "pdf_path": pdf_path,
-                    "pdf_message": pdf_message
-                }
-            else:
-                # PDF generation failed - send text summary only
-                logger.error("❌ PDF generation failed for text query - sending summary only")
-                if detected_language == 'ur':
-                    return text_summary + f"\n\n⚠️ معذرت! PDF بنانے میں خرابی ہوئی۔"
-                else:
-                    return text_summary + f"\n\n⚠️ Sorry! PDF generation failed."
         
         else:
             # For VOICE queries: Send voice summary + PDF OFFER (existing flow)
@@ -1180,18 +1158,60 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         from reportlab.lib.colors import HexColor, black, white, gray, blue, darkblue, lightgrey
         import tempfile
         from datetime import datetime
+        
+        # Import Urdu text processing libraries
+        try:
+            import arabic_reshaper
+            from bidi.algorithm import get_display
+            URDU_SUPPORT = True
+            logger.info("✅ Arabic reshaper and BiDi support loaded successfully")
+        except ImportError as e:
+            URDU_SUPPORT = False
+            logger.warning(f"⚠️ Urdu text shaping libraries not available: {e}")
+            logger.warning("Install with: pip install arabic-reshaper python-bidi")
 
-        # Register Urdu-compatible font using available system fonts
+        # Helper function to properly format Urdu/Arabic text
+        def reshape_urdu_text(text):
+            """
+            Reshape Urdu/Arabic text for proper rendering in PDF.
+            This fixes the issue of disconnected letters and black boxes.
+            """
+            if not text or not URDU_SUPPORT:
+                return text
+            
+            try:
+                # Check if text contains Arabic/Urdu characters
+                has_arabic = any('\u0600' <= char <= '\u06FF' or '\u0750' <= char <= '\u077F' for char in text)
+                
+                if has_arabic:
+                    # Reshape the text to connect letters properly
+                    # Note: arabic_reshaper.reshape() doesn't need configuration parameter in newer versions
+                    reshaped_text = arabic_reshaper.reshape(text)
+                    
+                    # Apply bidirectional algorithm for right-to-left display
+                    bidi_text = get_display(reshaped_text)
+                    
+                    return bidi_text
+                else:
+                    return text
+                    
+            except Exception as e:
+                logger.warning(f"Error reshaping Urdu text: {e}")
+                return text
+
+        # Register Urdu-compatible font using available Windows fonts
         urdu_font = 'Helvetica'  # Default fallback
 
         try:
-            # Priority order: Arial Unicode MS (best) → Arial → Tahoma → Candara Arabic → Garamond
+            # Priority order of Windows fonts with best Urdu support
             font_options = [
+                ('NotoNaskhArabic', r"C:\Windows\Fonts\NotoNaskhArabic-Regular.ttf", "Noto Naskh Arabic"),
+                ('TraditionalArabic', r"C:\Windows\Fonts\trado.ttf", "Traditional Arabic"),
+                ('SimplifiedArabic', r"C:\Windows\Fonts\simpo.ttf", "Simplified Arabic"),
                 ('ArialUnicodeMS', r"C:\Windows\Fonts\ARIALUNI.ttf", "Arial Unicode MS"),
-                ('Arial', r"C:\Windows\Fonts\arial.ttf", "Arial Regular"),
-                ('Tahoma', r"C:\Windows\Fonts\tahoma.ttf", "Tahoma Regular"),
-                ('Candarab', r"C:\Windows\Fonts\Candarab.ttf", "Candara Bold (Arabic)"),
-                ('GaramondBold', r"C:\Windows\Fonts\GARABD.TTF", "Garamond Bold"),
+                ('Tahoma', r"C:\Windows\Fonts\tahoma.ttf", "Tahoma"),
+                ('SegoeUI', r"C:\Windows\Fonts\segoeui.ttf", "Segoe UI"),
+                ('Calibri', r"C:\Windows\Fonts\calibri.ttf", "Calibri"),
             ]
 
             for font_name, font_path, display_name in font_options:
@@ -1247,6 +1267,41 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
                 return 'UrduText'    # Left-aligned for mixed content
             else:
                 return 'BodyText'    # English text
+        
+        # Smart Paragraph wrapper that automatically reshapes Urdu text
+        def create_paragraph(text, style):
+            """
+            Create a Paragraph with automatic Urdu text reshaping.
+            This ensures proper letter connection and right-to-left display.
+            """
+            if not text:
+                return Paragraph(text, style)
+            
+            # Process HTML-like text to reshape Urdu content
+            if URDU_SUPPORT and is_urdu_text(text):
+                try:
+                    # Split by HTML tags to preserve them
+                    import re
+                    tag_pattern = r'(<[^>]+>)'
+                    parts = re.split(tag_pattern, text)
+                    
+                    reshaped_parts = []
+                    for part in parts:
+                        # If it's an HTML tag, keep it as is
+                        if part.startswith('<') and part.endswith('>'):
+                            reshaped_parts.append(part)
+                        else:
+                            # Otherwise, reshape if it contains Urdu
+                            if part and is_urdu_text(part):
+                                reshaped_parts.append(reshape_urdu_text(part))
+                            else:
+                                reshaped_parts.append(part)
+                    
+                    text = ''.join(reshaped_parts)
+                except Exception as e:
+                    logger.warning(f"Error reshaping text for paragraph: {e}")
+            
+            return Paragraph(text, style)
 
         # Create PDF file
         temp_dir = tempfile.gettempdir()
@@ -1318,16 +1373,25 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         ))
 
         # Body Text Style with better font handling
-        styles.add(ParagraphStyle(
-            name='BodyText',
-            parent=styles['Normal'],
-            fontName=urdu_font,
-            fontSize=11,
-            alignment=TA_JUSTIFY,
-            leading=14,
-            spaceAfter=6,
-            encoding='utf-8'  # Ensure UTF-8 encoding
-        ))
+        if 'BodyText' not in styles:
+            styles.add(ParagraphStyle(
+                name='BodyText',
+                parent=styles['Normal'],
+                fontName=urdu_font,
+                fontSize=11,
+                alignment=TA_JUSTIFY,
+                leading=14,
+                spaceAfter=6,
+                encoding='utf-8'  # Ensure UTF-8 encoding
+            ))
+        else:
+            # Style already exists, modify the existing one
+            logger.info("BodyText style already exists, modifying existing style")
+            styles['BodyText'].fontName = urdu_font
+            styles['BodyText'].fontSize = 11
+            styles['BodyText'].alignment = TA_JUSTIFY
+            styles['BodyText'].leading = 14
+            styles['BodyText'].spaceAfter = 6
 
         # Urdu-specific text style for better word formation
         styles.add(ParagraphStyle(
@@ -1425,10 +1489,10 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             title_text = "🏛️ LAWYAAR LEGAL RESEARCH REPORT"
             subtitle_text = "Comprehensive Supreme Court of Pakistan Case Law Analysis"
 
-        title = Paragraph(title_text, styles['ReportTitle'])
+        title = create_paragraph(title_text, styles['ReportTitle'])
         story.append(title)
 
-        subtitle = Paragraph(subtitle_text, styles['ReportSubtitle'])
+        subtitle = create_paragraph(subtitle_text, styles['ReportSubtitle'])
         story.append(subtitle)
 
         # Decorative line
@@ -1507,7 +1571,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         # TABLE OF CONTENTS
         # ================================
 
-        toc_title = Paragraph("<b>📖 TABLE OF CONTENTS</b>", styles['SectionHeader'])
+        toc_title = create_paragraph("<b>📖 TABLE OF CONTENTS</b>", styles['SectionHeader'])
         story.append(toc_title)
         story.append(Spacer(1, 10))
 
@@ -1522,7 +1586,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         ]
 
         for item in toc_items:
-            toc_item = Paragraph(item, styles['BodyText'])
+            toc_item = create_paragraph(item, styles['BodyText'])
             story.append(toc_item)
             story.append(Spacer(1, 3))
 
@@ -1534,13 +1598,13 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
 
         story.append(PageBreak())
         if detected_language == 'ur':
-            exec_summary_title = Paragraph("<b>1. 📊 ایگزیکٹو سمری</b>", styles['SectionHeader'])
+            exec_summary_title = create_paragraph("<b>1. 📊 ایگزیکٹو سمری</b>", styles['SectionHeader'])
         elif detected_language == 'sd':
-            exec_summary_title = Paragraph("<b>1. 📊 ايگزيڪيوٽو سميري</b>", styles['SectionHeader'])
+            exec_summary_title = create_paragraph("<b>1. 📊 ايگزيڪيوٽو سميري</b>", styles['SectionHeader'])
         elif detected_language == 'bl':
-            exec_summary_title = Paragraph("<b>1. 📊 ایگزیکٹو سمری</b>", styles['SectionHeader'])
+            exec_summary_title = create_paragraph("<b>1. 📊 ایگزیکٹو سمری</b>", styles['SectionHeader'])
         else:
-            exec_summary_title = Paragraph("<b>1. 📊 EXECUTIVE SUMMARY</b>", styles['SectionHeader'])
+            exec_summary_title = create_paragraph("<b>1. 📊 EXECUTIVE SUMMARY</b>", styles['SectionHeader'])
         story.append(exec_summary_title)
         story.append(Spacer(1, 10))
 
@@ -1578,25 +1642,28 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             • Professional legal research methodology applied
             """
 
-        summary_box = Paragraph(summary_stats, styles['HighlightBox'])
+        summary_box = create_paragraph(summary_stats, styles['HighlightBox'])
         story.append(summary_box)
         story.append(Spacer(1, 15))
 
         # Voice summary content
+
+        # Ensure escape is always available
+        from xml.sax.saxutils import escape
+
         if voice_summary.strip():
             if detected_language == 'ur':
-                summary_content = Paragraph("<b>💡 کلیدی نتائج:</b>", styles['SubsectionHeader'])
+                summary_content = create_paragraph("<b>💡 کلیدی نتائج:</b>", styles['SubsectionHeader'])
             elif detected_language == 'sd':
-                summary_content = Paragraph("<b>💡 ڪليدي نتيجا:</b>", styles['SubsectionHeader'])
+                summary_content = create_paragraph("<b>💡 ڪليدي نتيجا:</b>", styles['SubsectionHeader'])
             elif detected_language == 'bl':
-                summary_content = Paragraph("<b>💡 کلیدی نتائج:</b>", styles['SubsectionHeader'])
+                summary_content = create_paragraph("<b>💡 کلیدی نتائج:</b>", styles['SubsectionHeader'])
             else:
-                summary_content = Paragraph("<b>💡 Key Findings:</b>", styles['SubsectionHeader'])
+                summary_content = create_paragraph("<b>💡 Key Findings:</b>", styles['SubsectionHeader'])
             story.append(summary_content)
             story.append(Spacer(1, 5))
 
             # Escape XML special characters in summary
-            from xml.sax.saxutils import escape
             summary_escaped = escape(voice_summary)
             # Simple markdown conversion (bold only)
             import re
@@ -1604,7 +1671,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             summary_escaped = re.sub(r'\*([^*]+)\*', r'<i>\1</i>', summary_escaped)
 
             style_name = get_text_style(voice_summary)
-            story.append(Paragraph(summary_escaped, styles[style_name]))
+            story.append(create_paragraph(summary_escaped, styles[style_name]))
             story.append(Spacer(1, 10))
 
         # ================================
@@ -1612,13 +1679,13 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         # ================================
 
         if detected_language == 'ur':
-            query_title = Paragraph("<b>2. ❓ آپ کا قانونی سوال</b>", styles['SectionHeader'])
+            query_title = create_paragraph("<b>2. ❓ آپ کا قانونی سوال</b>", styles['SectionHeader'])
         elif detected_language == 'sd':
-            query_title = Paragraph("<b>2. ❓ توهان جو قانوني سوال</b>", styles['SectionHeader'])
+            query_title = create_paragraph("<b>2. ❓ توهان جو قانوني سوال</b>", styles['SectionHeader'])
         elif detected_language == 'bl':
-            query_title = Paragraph("<b>2. ❓ آپ کا قانونی سوال</b>", styles['SectionHeader'])
+            query_title = create_paragraph("<b>2. ❓ آپ کا قانونی سوال</b>", styles['SectionHeader'])
         else:
-            query_title = Paragraph("<b>2. ❓ YOUR LEGAL QUERY</b>", styles['SectionHeader'])
+            query_title = create_paragraph("<b>2. ❓ YOUR LEGAL QUERY</b>", styles['SectionHeader'])
         story.append(query_title)
         story.append(Spacer(1, 10))
 
@@ -1632,7 +1699,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         else:
             query_label = "Query:"
 
-        query_box_data = [[Paragraph(f"<b>{query_label}</b> {escape(query)}", styles['BodyText'])]]
+        query_box_data = [[create_paragraph(f"<b>{query_label}</b> {escape(query)}", styles['BodyText'])]]
         query_table = Table(query_box_data, colWidths=[7*inch])
         query_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, -1), HexColor('#F8F9FA')),
@@ -1652,13 +1719,13 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
 
         story.append(PageBreak())
         if detected_language == 'ur':
-            analysis_title = Paragraph("<b>3. ⚖️ تفصیلی قانونی تجزیہ</b>", styles['SectionHeader'])
+            analysis_title = create_paragraph("<b>3. ⚖️ تفصیلی قانونی تجزیہ</b>", styles['SectionHeader'])
         elif detected_language == 'sd':
-            analysis_title = Paragraph("<b>3. ⚖️ تفصيلي قانوني تجزيو</b>", styles['SectionHeader'])
+            analysis_title = create_paragraph("<b>3. ⚖️ تفصيلي قانوني تجزيو</b>", styles['SectionHeader'])
         elif detected_language == 'bl':
-            analysis_title = Paragraph("<b>3. ⚖️ تفصیلی قانونی تجزیہ</b>", styles['SectionHeader'])
+            analysis_title = create_paragraph("<b>3. ⚖️ تفصیلی قانونی تجزیہ</b>", styles['SectionHeader'])
         else:
-            analysis_title = Paragraph("<b>3. ⚖️ DETAILED LEGAL ANALYSIS</b>", styles['SectionHeader'])
+            analysis_title = create_paragraph("<b>3. ⚖️ DETAILED LEGAL ANALYSIS</b>", styles['SectionHeader'])
         story.append(analysis_title)
         story.append(Spacer(1, 12))
 
@@ -1687,7 +1754,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             This section provides an in-depth analysis of your legal query based on relevant Supreme Court of Pakistan case law.
             The analysis synthesizes information from multiple cases, highlighting key legal principles, holdings, and practical implications.
             """
-        story.append(Paragraph(intro_text, styles['BodyText']))
+        story.append(create_paragraph(intro_text, styles['BodyText']))
         story.append(Spacer(1, 10))
 
         # Main legal analysis content
@@ -1718,17 +1785,17 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
                         # Add paragraph numbering for main sections
                         if len(para) > 100:  # Substantial paragraphs
                             style_name = get_text_style(para)
-                            story.append(Paragraph(f"<b>[{i+1}]</b> {para}", styles[style_name]))
+                            story.append(create_paragraph(f"<b>[{i+1}]</b> {para}", styles[style_name]))
                         else:
                             style_name = get_text_style(para)
-                            story.append(Paragraph(para, styles[style_name]))
+                            story.append(create_paragraph(para, styles[style_name]))
                         story.append(Spacer(1, 6))
             except Exception as text_error:
                 logger.warning(f"Error processing legal text: {text_error}")
                 # Fallback to simple text processing
                 simple_text = escape(full_legal_response)
                 style_name = get_text_style(simple_text)
-                story.append(Paragraph(simple_text, styles[style_name]))
+                story.append(create_paragraph(simple_text, styles[style_name]))
                 story.append(Spacer(1, 6))
 
         # ================================
@@ -1736,7 +1803,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         # ================================
 
         story.append(PageBreak())
-        findings_title = Paragraph("<b>4. 🎯 KEY FINDINGS & LEGAL PRINCIPLES</b>", styles['SectionHeader'])
+        findings_title = create_paragraph("<b>4. 🎯 KEY FINDINGS & LEGAL PRINCIPLES</b>", styles['SectionHeader'])
         story.append(findings_title)
         story.append(Spacer(1, 10))
 
@@ -1749,7 +1816,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         • <b>Case Citations:</b> All conclusions are supported by specific Supreme Court precedents
         """
 
-        story.append(Paragraph(findings_text, styles['BodyText']))
+        story.append(create_paragraph(findings_text, styles['BodyText']))
         story.append(Spacer(1, 15))
 
         # ================================
@@ -1759,13 +1826,13 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
         story.append(PageBreak())
         if pdf_links and len(pdf_links) > 0:
             if detected_language == 'ur':
-                references_title = Paragraph("<b>5. 📚 کیس حوالہ جات اور اقتباسات</b>", styles['SectionHeader'])
+                references_title = create_paragraph("<b>5. 📚 کیس حوالہ جات اور اقتباسات</b>", styles['SectionHeader'])
             elif detected_language == 'sd':
-                references_title = Paragraph("<b>5. 📚 ڪيس حوالا ۽ اقتباس</b>", styles['SectionHeader'])
+                references_title = create_paragraph("<b>5. 📚 ڪيس حوالا ۽ اقتباس</b>", styles['SectionHeader'])
             elif detected_language == 'bl':
-                references_title = Paragraph("<b>5. 📚 کیس حوالہ جات اور اقتباسات</b>", styles['SectionHeader'])
+                references_title = create_paragraph("<b>5. 📚 کیس حوالہ جات اور اقتباسات</b>", styles['SectionHeader'])
             else:
-                references_title = Paragraph("<b>5. 📚 CASE REFERENCES & CITATIONS</b>", styles['SectionHeader'])
+                references_title = create_paragraph("<b>5. 📚 CASE REFERENCES & CITATIONS</b>", styles['SectionHeader'])
             story.append(references_title)
             story.append(Spacer(1, 12))
 
@@ -1793,7 +1860,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
                 Below is a comprehensive list of all Supreme Court cases analyzed in this report.
                 Each case includes citation details, case titles, and direct links to official court documents.
                 """
-            story.append(Paragraph(references_intro, styles['BodyText']))
+            story.append(create_paragraph(references_intro, styles['BodyText']))
             story.append(Spacer(1, 10))
 
             # Create case reference cards (Localized labels)
@@ -1859,13 +1926,13 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
 
         story.append(PageBreak())
         if detected_language == 'ur':
-            resources_title = Paragraph("<b>6. 📖 اضافی وسائل</b>", styles['SectionHeader'])
+            resources_title = create_paragraph("<b>6. 📖 اضافی وسائل</b>", styles['SectionHeader'])
         elif detected_language == 'sd':
-            resources_title = Paragraph("<b>6. 📖 اضافي وسيلا</b>", styles['SectionHeader'])
+            resources_title = create_paragraph("<b>6. 📖 اضافي وسيلا</b>", styles['SectionHeader'])
         elif detected_language == 'bl':
-            resources_title = Paragraph("<b>6. 📖 اضافی وسائل</b>", styles['SectionHeader'])
+            resources_title = create_paragraph("<b>6. 📖 اضافی وسائل</b>", styles['SectionHeader'])
         else:
-            resources_title = Paragraph("<b>6. 📖 ADDITIONAL RESOURCES</b>", styles['SectionHeader'])
+            resources_title = create_paragraph("<b>6. 📖 ADDITIONAL RESOURCES</b>", styles['SectionHeader'])
         story.append(resources_title)
         story.append(Spacer(1, 12))
 
@@ -1910,7 +1977,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             For personalized legal advice and representation, consult qualified attorneys and legal professionals.
             """
 
-        story.append(Paragraph(resources_text, styles['BodyText']))
+        story.append(create_paragraph(resources_text, styles['BodyText']))
         story.append(Spacer(1, 15))
 
         # ================================
@@ -1919,13 +1986,13 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
 
         story.append(PageBreak())
         if detected_language == 'ur':
-            methodology_title = Paragraph("<b>7. 🔬 طریقہ کار اور پیشہ ورانہ اخطاریے</b>", styles['SectionHeader'])
+            methodology_title = create_paragraph("<b>7. 🔬 طریقہ کار اور پیشہ ورانہ اخطاریے</b>", styles['SectionHeader'])
         elif detected_language == 'sd':
-            methodology_title = Paragraph("<b>7. 🔬 طريقو ڪار ۽ پروفيشنل اختياريون</b>", styles['SectionHeader'])
+            methodology_title = create_paragraph("<b>7. 🔬 طريقو ڪار ۽ پروفيشنل اختياريون</b>", styles['SectionHeader'])
         elif detected_language == 'bl':
-            methodology_title = Paragraph("<b>7. 🔬 طریقہ کار اور پیشہ ورانہ اخطاریے</b>", styles['SectionHeader'])
+            methodology_title = create_paragraph("<b>7. 🔬 طریقہ کار اور پیشہ ورانہ اخطاریے</b>", styles['SectionHeader'])
         else:
-            methodology_title = Paragraph("<b>7. 🔬 METHODOLOGY & PROFESSIONAL DISCLAIMERS</b>", styles['SectionHeader'])
+            methodology_title = create_paragraph("<b>7. 🔬 METHODOLOGY & PROFESSIONAL DISCLAIMERS</b>", styles['SectionHeader'])
         story.append(methodology_title)
         story.append(Spacer(1, 12))
 
@@ -1986,7 +2053,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             • <i>LawYaar provides research assistance but is not a substitute for professional legal counsel</i>
             """
 
-        story.append(Paragraph(methodology_text, styles['BodyText']))
+        story.append(create_paragraph(methodology_text, styles['BodyText']))
         story.append(Spacer(1, 20))
 
         # ================================
@@ -2023,7 +2090,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
             """
 
         footer_table_data = [[
-            Paragraph(footer_text, styles['Footer'])
+            create_paragraph(footer_text, styles['Footer'])
         ]]
 
         footer_table = Table(footer_table_data, colWidths=[7*inch])
@@ -2058,7 +2125,7 @@ def generate_pdf_report(wa_id: str, name: str, research_data: dict) -> str:
                 fallback_styles = getSampleStyleSheet()
 
                 # Simple title
-                title_fallback = Paragraph("LawYaar Legal Research Report", fallback_styles['Title'])
+                title_fallback = create_paragraph("LawYaar Legal Research Report", fallback_styles['Title'])
                 story_fallback.append(title_fallback)
                 story_fallback.append(Spacer(1, 12))
 
