@@ -8,10 +8,6 @@ Unlike static legal databases, LawYaar uses a RAG (Retrieval-Augmented Generatio
 
 **Accurate retrieval**: Multi-layer filtering ensures fact-based, citation-backed responses with official judgment links.
 
-## Overview
-
-LawYaar is an AI-powered legal research system that indexes legal documents (court cases, judgments) and provides contextual answers to legal queries. It uses vector embeddings and semantic search to retrieve relevant legal precedents and generate comprehensive research responses.
-
 ## Features
 
 - **Document Ingestion**: Automatically processes and indexes legal documents from text files
@@ -21,6 +17,7 @@ LawYaar is an AI-powered legal research system that indexes legal documents (cou
 - **WhatsApp Integration**: Query legal cases directly through WhatsApp
 - **Docker Support**: Containerized deployment with Docker Compose
 - **Progress Tracking**: Real-time progress updates during document processing
+- **Comprehensive Database**: Currently indexed with 3000+ judgments from official Supreme Court websites.
 
 ## Tech Stack
 
@@ -200,7 +197,5 @@ Edit `src/config.py` to customize:
 - **Agent Nodes**: Specialized LLM agents for document analysis and response generation
 
 **Note**: This system is designed for legal research assistance. Always verify legal information with qualified legal professionals before making legal decisions.
-
----
 
 ### made with 🧡💚 by zeeshan and [bilal](https://github.com/Bilal-Ahmad6)
