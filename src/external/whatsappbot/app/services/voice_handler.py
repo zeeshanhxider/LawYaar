@@ -206,6 +206,7 @@ class VoiceMessageHandler:
         """
         try:
             import google.generativeai as genai
+            from pathlib import Path
             
             gemini_api_key = os.getenv('GEMINI_API_KEY')
             if not gemini_api_key:
@@ -214,17 +215,24 @@ class VoiceMessageHandler:
             
             genai.configure(api_key=gemini_api_key)
             
-            # Upload the audio file
+            # Read audio file data
             logger.info(f"🎤 Transcribing audio with Gemini: {file_path}")
             
             # Determine MIME type from file extension
             mime_type = self._get_mime_type(file_path)
             logger.info(f"📄 Detected MIME type: {mime_type}")
             
-            # Upload file to Gemini File API with explicit MIME type
-            logger.info("⬆️ Uploading audio file to Gemini...")
-            uploaded_file = genai.upload_file(file_path, mime_type=mime_type)
-            logger.info(f"✅ File uploaded: {uploaded_file.name}")
+            # Read audio data
+            audio_data = Path(file_path).read_bytes()
+            
+            # Create audio part for Gemini
+            from google.generativeai import protos
+            audio_part = protos.Part(
+                inline_data=protos.Blob(
+                    mime_type=mime_type,
+                    data=audio_data
+                )
+            )
             
             # Use gemini-2.5-flash (stable model that supports audio)
             model = genai.GenerativeModel('gemini-2.5-flash')
@@ -233,18 +241,11 @@ class VoiceMessageHandler:
             logger.info("📝 Generating transcription...")
             response = model.generate_content([
                 "Transcribe this audio message accurately. Only return the transcribed text, nothing else. If the audio is in Urdu or Arabic, transcribe it in the original language.",
-                uploaded_file
+                audio_part
             ])
             
             transcription = response.text.strip()
             logger.info(f"✅ Transcription successful: {transcription[:100]}...")
-            
-            # Clean up uploaded file
-            try:
-                uploaded_file.delete()
-                logger.info("🗑️ Cleaned up uploaded file from Gemini")
-            except:
-                pass
             
             return transcription
             

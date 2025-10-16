@@ -6,6 +6,7 @@ out/
 __pycache__/
 
 # Environment files
+venv/
 .env
 .env.local
 .env.*.local
